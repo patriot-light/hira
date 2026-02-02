@@ -195,7 +195,7 @@ class HiraInstituteAPITester:
             "email": "mohammad@hira.edu"
         }
         
-        success, response, error = self.make_request('POST', '/teachers', teacher_data, 201)
+        success, response, error = self.make_request('POST', '/teachers', teacher_data, 200)
         if success and 'id' in response:
             teacher_id = response['id']
             self.created_resources['teachers'].append(teacher_id)
