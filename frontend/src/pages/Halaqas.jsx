@@ -7,45 +7,11 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { 
-  Plus, 
-  Search, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  BookOpen,
-  Users,
-  Calendar,
-  Clock,
-  Loader2,
-  UserPlus,
-  UserMinus
-} from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Plus, Search, MoreVertical, Edit, Trash2, BookOpen, Users, Calendar, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const DAYS_LIST = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 const Halaqas = () => {
   const { t } = useTranslation();
@@ -56,57 +22,36 @@ const Halaqas = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [manageStudentsOpen, setManageStudentsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedHalaqa, setSelectedHalaqa] = useState(null);
-  const [halaqaStudents, setHalaqaStudents] = useState([]);
-  const [formData, setFormData] = useState({
-    name: '',
-    level: 'beginner',
-    teacher_ids: [],
-    schedule: []
-  });
-  const [scheduleDay, setScheduleDay] = useState('');
-  const [scheduleStart, setScheduleStart] = useState('');
-  const [scheduleEnd, setScheduleEnd] = useState('');
+  const [formName, setFormName] = useState('');
+  const [formLevel, setFormLevel] = useState('beginner');
+  const [formTeacherId, setFormTeacherId] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const halaqasRes = await halaqasAPI.getAll();
-      const teachersRes = await teachersAPI.getAll();
-      const studentsRes = await studentsAPI.getAll();
-      setHalaqas(halaqasRes.data);
-      setTeachers(teachersRes.data);
-      setAllStudents(studentsRes.data);
+      const [h, tc, st] = await Promise.all([halaqasAPI.getAll(), teachersAPI.getAll(), studentsAPI.getAll()]);
+      setHalaqas(h.data);
+      setTeachers(tc.data);
+      setAllStudents(st.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast.error(t('error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchHalaqaStudents = async (halaqaId) => {
-    try {
-      const response = await halaqasAPI.getStudents(halaqaId);
-      setHalaqaStudents(response.data);
-    } catch (error) {
-      console.error('Error fetching halaqa students:', error);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const data = { name: formName, level: formLevel, teacher_ids: formTeacherId ? [formTeacherId] : [], schedule: [] };
       if (selectedHalaqa) {
-        await halaqasAPI.update(selectedHalaqa.id, formData);
+        await halaqasAPI.update(selectedHalaqa.id, data);
         toast.success(t('halaqaUpdated'));
       } else {
-        await halaqasAPI.create(formData);
+        await halaqasAPI.create(data);
         toast.success(t('halaqaCreated'));
       }
       setDialogOpen(false);
@@ -131,64 +76,17 @@ const Halaqas = () => {
 
   const handleEdit = (halaqa) => {
     setSelectedHalaqa(halaqa);
-    setFormData({
-      name: halaqa.name,
-      level: halaqa.level,
-      teacher_ids: halaqa.teacher_ids || [],
-      schedule: halaqa.schedule || []
-    });
+    setFormName(halaqa.name);
+    setFormLevel(halaqa.level);
+    setFormTeacherId(halaqa.teacher_ids && halaqa.teacher_ids[0] ? halaqa.teacher_ids[0] : '');
     setDialogOpen(true);
-  };
-
-  const handleManageStudents = async (halaqa) => {
-    setSelectedHalaqa(halaqa);
-    await fetchHalaqaStudents(halaqa.id);
-    setManageStudentsOpen(true);
-  };
-
-  const handleAssignStudent = async (studentId) => {
-    try {
-      await halaqasAPI.assignStudent(selectedHalaqa.id, studentId);
-      toast.success('Student assigned successfully');
-      await fetchHalaqaStudents(selectedHalaqa.id);
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || t('error'));
-    }
-  };
-
-  const handleRemoveStudent = async (studentId) => {
-    try {
-      await halaqasAPI.removeStudent(selectedHalaqa.id, studentId);
-      toast.success('Student removed successfully');
-      await fetchHalaqaStudents(selectedHalaqa.id);
-      fetchData();
-    } catch (error) {
-      toast.error(t('error'));
-    }
   };
 
   const resetForm = () => {
     setSelectedHalaqa(null);
-    setFormData({ name: '', level: 'beginner', teacher_ids: [], schedule: [] });
-    setScheduleDay('');
-    setScheduleStart('');
-    setScheduleEnd('');
-  };
-
-  const addScheduleItem = () => {
-    if (scheduleDay && scheduleStart && scheduleEnd) {
-      const newSchedule = [...formData.schedule, { day: scheduleDay, start_time: scheduleStart, end_time: scheduleEnd }];
-      setFormData({ ...formData, schedule: newSchedule });
-      setScheduleDay('');
-      setScheduleStart('');
-      setScheduleEnd('');
-    }
-  };
-
-  const removeScheduleItem = (index) => {
-    const newSchedule = formData.schedule.filter((_, i) => i !== index);
-    setFormData({ ...formData, schedule: newSchedule });
+    setFormName('');
+    setFormLevel('beginner');
+    setFormTeacherId('');
   };
 
   const getLevelColor = (level) => {
@@ -198,51 +96,30 @@ const Halaqas = () => {
     return 'bg-gray-100 text-gray-700';
   };
 
-  const getTeacherNames = (teacherIds) => {
-    if (!teacherIds || teacherIds.length === 0) return '-';
-    const names = teacherIds.map(id => {
-      const teacher = teachers.find(t => t.id === id);
-      return teacher ? teacher.full_name : null;
-    }).filter(Boolean);
-    return names.length > 0 ? names.join(', ') : '-';
+  const getTeacherName = (ids) => {
+    if (!ids || ids.length === 0) return '-';
+    const teacher = teachers.find(t => t.id === ids[0]);
+    return teacher ? teacher.full_name : '-';
   };
 
-  const getStudentCount = (halaqaId) => {
-    return allStudents.filter(s => s.halaqa_id === halaqaId).length;
-  };
+  const getStudentCount = (halaqaId) => allStudents.filter(s => s.halaqa_id === halaqaId).length;
 
-  const unassignedStudents = allStudents.filter(s => !s.halaqa_id);
+  const filteredHalaqas = halaqas.filter(h => h.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const filteredHalaqas = halaqas.filter(halaqa =>
-    halaqa.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6" data-testid="halaqas-page">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-primary" />
-            {t('halaqas')}
+            <BookOpen className="h-8 w-8 text-primary" />{t('halaqas')}
           </h1>
           <p className="text-muted-foreground mt-1">{halaqas.length} {t('halaqas')}</p>
         </div>
         {canManage() && (
-          <Button 
-            onClick={() => { resetForm(); setDialogOpen(true); }}
-            className="gap-2 bg-primary hover:bg-primary/90"
-            data-testid="add-halaqa-btn"
-          >
-            <Plus className="h-4 w-4" />
-            {t('addHalaqa')}
+          <Button onClick={() => { resetForm(); setDialogOpen(true); }} className="gap-2 bg-primary hover:bg-primary/90" data-testid="add-halaqa-btn">
+            <Plus className="h-4 w-4" />{t('addHalaqa')}
           </Button>
         )}
       </div>
@@ -251,22 +128,14 @@ const Halaqas = () => {
         <CardContent className="p-4">
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t('search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-10"
-              data-testid="search-halaqas-input"
-            />
+            <Input placeholder={t('search')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="ps-10" data-testid="search-halaqas-input" />
           </div>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredHalaqas.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="p-8 text-center text-muted-foreground">{t('noData')}</CardContent>
-          </Card>
+          <Card className="col-span-full"><CardContent className="p-8 text-center text-muted-foreground">{t('noData')}</CardContent></Card>
         ) : (
           filteredHalaqas.map((halaqa) => (
             <Card key={halaqa.id} className="card-hover" data-testid={`halaqa-card-${halaqa.id}`}>
@@ -284,55 +153,27 @@ const Halaqas = () => {
                   {canManage() && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" data-testid={`halaqa-actions-${halaqa.id}`}>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
+                        <Button variant="ghost" size="icon" data-testid={`halaqa-actions-${halaqa.id}`}><MoreVertical className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(halaqa)}>
-                          <Edit className="h-4 w-4 me-2" />{t('edit')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleManageStudents(halaqa)}>
-                          <Users className="h-4 w-4 me-2" />{t('manageStudents')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => { setSelectedHalaqa(halaqa); setDeleteDialogOpen(true); }}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 me-2" />{t('delete')}
-                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(halaqa)}><Edit className="h-4 w-4 me-2" />{t('edit')}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setSelectedHalaqa(halaqa); setDeleteDialogOpen(true); }} className="text-destructive"><Trash2 className="h-4 w-4 me-2" />{t('delete')}</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t('assignedTeachers')}:</span>
-                  <span className="truncate">{getTeacherNames(halaqa.teacher_ids)}</span>
+                  <span className="truncate">{getTeacherName(halaqa.teacher_ids)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t('studentsCount')}:</span>
                   <Badge variant="outline">{getStudentCount(halaqa.id)}</Badge>
                 </div>
-                {halaqa.schedule && halaqa.schedule.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" /><span>{t('schedule')}:</span>
-                    </div>
-                    <div className="space-y-1">
-                      {halaqa.schedule.map((s, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
-                          <span className="font-medium capitalize">{t(s.day)}</span>
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span>{s.start_time} - {s.end_time}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))
@@ -340,27 +181,19 @@ const Halaqas = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{selectedHalaqa ? t('editHalaqa') : t('addHalaqa')}</DialogTitle>
-            <DialogDescription>
-              {selectedHalaqa ? 'Update halaqa information' : 'Create a new study circle'}
-            </DialogDescription>
+            <DialogDescription>{selectedHalaqa ? 'Update halaqa information' : 'Create a new study circle'}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t('halaqaName')} *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                data-testid="halaqa-name-input"
-              />
+              <Input id="name" value={formName} onChange={(e) => setFormName(e.target.value)} required data-testid="halaqa-name-input" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="level">{t('level')} *</Label>
-              <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
+              <Label>{t('level')} *</Label>
+              <Select value={formLevel} onValueChange={setFormLevel}>
                 <SelectTrigger data-testid="halaqa-level-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="beginner">{t('beginner')}</SelectItem>
@@ -371,43 +204,13 @@ const Halaqas = () => {
             </div>
             <div className="space-y-2">
               <Label>{t('assignedTeachers')}</Label>
-              <Select
-                value={formData.teacher_ids[0] || ''}
-                onValueChange={(value) => setFormData({ ...formData, teacher_ids: value ? [value] : [] })}
-              >
-                <SelectTrigger data-testid="halaqa-teacher-select">
-                  <SelectValue placeholder="Select a teacher" />
-                </SelectTrigger>
+              <Select value={formTeacherId} onValueChange={setFormTeacherId}>
+                <SelectTrigger data-testid="halaqa-teacher-select"><SelectValue placeholder="Select a teacher" /></SelectTrigger>
                 <SelectContent>
-                  {teachers.map((teacher) => (
-                    <SelectItem key={teacher.id} value={teacher.id}>{teacher.full_name}</SelectItem>
-                  ))}
+                  <SelectItem value="">None</SelectItem>
+                  {teachers.map((tc) => <SelectItem key={tc.id} value={tc.id}>{tc.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-3">
-              <Label>{t('schedule')}</Label>
-              {formData.schedule.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 bg-muted rounded-lg p-2">
-                  <span className="flex-1 text-sm capitalize">{t(item.day)}: {item.start_time} - {item.end_time}</span>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeScheduleItem(index)} className="h-8 w-8">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <div className="grid grid-cols-3 gap-2">
-                <Select value={scheduleDay} onValueChange={setScheduleDay}>
-                  <SelectTrigger><SelectValue placeholder={t('day')} /></SelectTrigger>
-                  <SelectContent>
-                    {DAYS_LIST.map((day) => (<SelectItem key={day} value={day}>{t(day)}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-                <Input type="time" value={scheduleStart} onChange={(e) => setScheduleStart(e.target.value)} placeholder={t('startTime')} />
-                <Input type="time" value={scheduleEnd} onChange={(e) => setScheduleEnd(e.target.value)} placeholder={t('endTime')} />
-              </div>
-              <Button type="button" variant="outline" onClick={addScheduleItem} className="w-full">
-                <Plus className="h-4 w-4 me-2" />Add Schedule
-              </Button>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('cancel')}</Button>
@@ -417,56 +220,11 @@ const Halaqas = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={manageStudentsOpen} onOpenChange={setManageStudentsOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('manageStudents')}: {selectedHalaqa?.name}</DialogTitle>
-            <DialogDescription>Add or remove students from this halaqa</DialogDescription>
-          </DialogHeader>
-          <Tabs defaultValue="current" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="current">Current ({halaqaStudents.length})</TabsTrigger>
-              <TabsTrigger value="add">Add ({unassignedStudents.length})</TabsTrigger>
-            </TabsList>
-            <TabsContent value="current" className="space-y-2 mt-4">
-              {halaqaStudents.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No students assigned</p>
-              ) : (
-                halaqaStudents.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="font-medium">{student.full_name}</span>
-                    <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(student.id)} className="text-destructive hover:text-destructive" data-testid={`remove-student-${student.id}`}>
-                      <UserMinus className="h-4 w-4 me-1" />Remove
-                    </Button>
-                  </div>
-                ))
-              )}
-            </TabsContent>
-            <TabsContent value="add" className="space-y-2 mt-4">
-              {unassignedStudents.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No unassigned students</p>
-              ) : (
-                unassignedStudents.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <span className="font-medium">{student.full_name}</span>
-                    <Button variant="ghost" size="sm" onClick={() => handleAssignStudent(student.id)} className="text-primary hover:text-primary" data-testid={`assign-student-${student.id}`}>
-                      <UserPlus className="h-4 w-4 me-1" />Add
-                    </Button>
-                  </div>
-                ))
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('confirm')}</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {selectedHalaqa?.name}? Students will be unassigned but not deleted.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to delete {selectedHalaqa?.name}?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>{t('cancel')}</Button>

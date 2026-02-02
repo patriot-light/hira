@@ -2,30 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { sessionsAPI, studentsAPI, teachersAPI } from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Textarea } from '../components/ui/textarea';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Plus, Mic2, Loader2, Trash2, AlertCircle, Clock, FileText } from 'lucide-react';
+import { Plus, Mic2, Loader2, Trash2, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-
-const ERROR_CATS = [
-  { value: 'idgham', label: 'idgham' },
-  { value: 'ikhfa', label: 'ikhfa' },
-  { value: 'iqlab', label: 'iqlab' },
-  { value: 'madd', label: 'madd' },
-  { value: 'ghunnah', label: 'ghunnah' },
-  { value: 'makharij', label: 'makharij' },
-  { value: 'memorization', label: 'memorizationError' },
-  { value: 'pronunciation', label: 'pronunciationError' }
-];
 
 const Sessions = () => {
   const { t } = useTranslation();
@@ -37,27 +23,21 @@ const Sessions = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [formData, setFormData] = useState({
-    student_id: '', teacher_id: '', duration_minutes: '', from_page: '', to_page: '', errors: []
-  });
-  const [errCategory, setErrCategory] = useState('');
-  const [errDesc, setErrDesc] = useState('');
-  const [errPage, setErrPage] = useState('');
-  const [errWord, setErrWord] = useState('');
-  const [errPenalty, setErrPenalty] = useState('1');
+  const [studentId, setStudentId] = useState('');
+  const [teacherId, setTeacherId] = useState('');
+  const [duration, setDuration] = useState('');
+  const [fromPage, setFromPage] = useState('');
+  const [toPage, setToPage] = useState('');
 
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const sessionsRes = await sessionsAPI.getAll();
-      const studentsRes = await studentsAPI.getAll();
-      const teachersRes = await teachersAPI.getAll();
-      setSessions(sessionsRes.data);
-      setStudents(studentsRes.data);
-      setTeachers(teachersRes.data);
+      const [s, st, tc] = await Promise.all([sessionsAPI.getAll(), studentsAPI.getAll(), teachersAPI.getAll()]);
+      setSessions(s.data);
+      setStudents(st.data);
+      setTeachers(tc.data);
     } catch (error) {
-      console.error('Error:', error);
       toast.error(t('error'));
     } finally {
       setLoading(false);
@@ -67,21 +47,14 @@ const Sessions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        student_id: formData.student_id,
-        teacher_id: formData.teacher_id,
-        duration_minutes: parseInt(formData.duration_minutes),
-        from_page: parseInt(formData.from_page),
-        to_page: parseInt(formData.to_page),
-        errors: formData.errors.map(err => ({
-          category: err.category,
-          description: err.description,
-          page_number: parseInt(err.page_number),
-          word: err.word,
-          penalty: parseFloat(err.penalty)
-        }))
-      };
-      await sessionsAPI.create(payload);
+      await sessionsAPI.create({
+        student_id: studentId,
+        teacher_id: teacherId,
+        duration_minutes: parseInt(duration),
+        from_page: parseInt(fromPage),
+        to_page: parseInt(toPage),
+        errors: []
+      });
       toast.success(t('sessionCreated'));
       setDialogOpen(false);
       resetForm();
@@ -101,26 +74,23 @@ const Sessions = () => {
     }
   };
 
-  const addError = () => {
-    if (errCategory && errPage) {
-      const newErr = { id: Date.now().toString(), category: errCategory, description: errDesc, page_number: errPage, word: errWord, penalty: errPenalty };
-      setFormData({ ...formData, errors: [...formData.errors, newErr] });
-      setErrCategory(''); setErrDesc(''); setErrPage(''); setErrWord(''); setErrPenalty('1');
-    }
-  };
-
-  const removeError = (idx) => {
-    setFormData({ ...formData, errors: formData.errors.filter((_, i) => i !== idx) });
-  };
-
   const resetForm = () => {
-    setFormData({ student_id: '', teacher_id: '', duration_minutes: '', from_page: '', to_page: '', errors: [] });
-    setErrCategory(''); setErrDesc(''); setErrPage(''); setErrWord(''); setErrPenalty('1');
+    setStudentId('');
+    setTeacherId('');
+    setDuration('');
+    setFromPage('');
+    setToPage('');
   };
 
-  const viewDetails = (session) => { setSelectedSession(session); setDetailsOpen(true); };
-  const getStudentName = (id) => { const s = students.find(x => x.id === id); return s ? s.full_name : '-'; };
-  const getTeacherName = (id) => { const t = teachers.find(x => x.id === id); return t ? t.full_name : '-'; };
+  const getStudentName = (id) => {
+    const s = students.find(x => x.id === id);
+    return s ? s.full_name : '-';
+  };
+
+  const getTeacherName = (id) => {
+    const tc = teachers.find(x => x.id === id);
+    return tc ? tc.full_name : '-';
+  };
 
   const getResultColor = (result) => {
     if (result === 'excellent') return 'bg-green-100 text-green-700';
@@ -176,7 +146,7 @@ const Sessions = () => {
                       <TableCell><Badge className={getResultColor(s.result)}>{t(s.result)}</Badge></TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => viewDetails(s)} data-testid={`view-session-${s.id}`}><FileText className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => { setSelectedSession(s); setDetailsOpen(true); }} data-testid={`view-session-${s.id}`}><FileText className="h-4 w-4" /></Button>
                           {canEvaluate() && <Button variant="ghost" size="icon" onClick={() => handleDelete(s.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
                         </div>
                       </TableCell>
@@ -190,71 +160,38 @@ const Sessions = () => {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('addSession')}</DialogTitle>
-            <DialogDescription>Record a new Tasmee' (recitation) session</DialogDescription>
+            <DialogDescription>Record a new Tasmee' session</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t('studentName')} *</Label>
-                <Select value={formData.student_id} onValueChange={(v) => setFormData({ ...formData, student_id: v })}>
-                  <SelectTrigger data-testid="session-student-select"><SelectValue placeholder="Select student" /></SelectTrigger>
-                  <SelectContent>{students.map((st) => <SelectItem key={st.id} value={st.id}>{st.full_name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('teacherName')} *</Label>
-                <Select value={formData.teacher_id} onValueChange={(v) => setFormData({ ...formData, teacher_id: v })}>
-                  <SelectTrigger data-testid="session-teacher-select"><SelectValue placeholder="Select teacher" /></SelectTrigger>
-                  <SelectContent>{teachers.map((tc) => <SelectItem key={tc.id} value={tc.id}>{tc.full_name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('studentName')} *</Label>
+              <Select value={studentId} onValueChange={setStudentId}>
+                <SelectTrigger data-testid="session-student-select"><SelectValue placeholder="Select student" /></SelectTrigger>
+                <SelectContent>{students.map((st) => <SelectItem key={st.id} value={st.id}>{st.full_name}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>{t('teacherName')} *</Label>
+              <Select value={teacherId} onValueChange={setTeacherId}>
+                <SelectTrigger data-testid="session-teacher-select"><SelectValue placeholder="Select teacher" /></SelectTrigger>
+                <SelectContent>{teachers.map((tc) => <SelectItem key={tc.id} value={tc.id}>{tc.full_name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label>{t('duration')} ({t('minutes')}) *</Label>
-                <Input type="number" value={formData.duration_minutes} onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })} required min="1" data-testid="session-duration-input" />
+                <Label>{t('duration')} *</Label>
+                <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required min="1" data-testid="session-duration-input" />
               </div>
               <div className="space-y-2">
                 <Label>{t('fromPage')} *</Label>
-                <Input type="number" value={formData.from_page} onChange={(e) => setFormData({ ...formData, from_page: e.target.value })} required min="1" max="604" data-testid="session-from-page-input" />
+                <Input type="number" value={fromPage} onChange={(e) => setFromPage(e.target.value)} required min="1" max="604" data-testid="session-from-page-input" />
               </div>
               <div className="space-y-2">
                 <Label>{t('toPage')} *</Label>
-                <Input type="number" value={formData.to_page} onChange={(e) => setFormData({ ...formData, to_page: e.target.value })} required min="1" max="604" data-testid="session-to-page-input" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2"><AlertCircle className="h-5 w-5 text-destructive" /><Label className="text-lg font-semibold">{t('errorTracking')}</Label></div>
-              {formData.errors.length > 0 && (
-                <div className="space-y-2">
-                  {formData.errors.map((err, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                      <div className="flex items-center gap-3">
-                        <Badge className="bg-red-100 text-red-700">{t(err.category)}</Badge>
-                        <span className="text-sm">Page {err.page_number}</span>
-                        {err.word && <span className="text-sm text-muted-foreground">"{err.word}"</span>}
-                        <Badge variant="outline">-{err.penalty}</Badge>
-                      </div>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeError(idx)} className="h-8 w-8 text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="p-4 border border-dashed rounded-lg space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Select value={errCategory} onValueChange={setErrCategory}>
-                    <SelectTrigger><SelectValue placeholder={t('errorCategory')} /></SelectTrigger>
-                    <SelectContent>{ERROR_CATS.map((c) => <SelectItem key={c.value} value={c.value}>{t(c.label)}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Input type="number" placeholder={t('pageNumber')} value={errPage} onChange={(e) => setErrPage(e.target.value)} />
-                  <Input placeholder={t('word')} value={errWord} onChange={(e) => setErrWord(e.target.value)} />
-                  <Input type="number" placeholder={t('penalty')} value={errPenalty} onChange={(e) => setErrPenalty(e.target.value)} min="0" step="0.5" />
-                </div>
-                <Textarea placeholder="Error description (optional)" value={errDesc} onChange={(e) => setErrDesc(e.target.value)} className="h-16" />
-                <Button type="button" variant="outline" onClick={addError} className="w-full"><Plus className="h-4 w-4 me-2" />{t('addError')}</Button>
+                <Input type="number" value={toPage} onChange={(e) => setToPage(e.target.value)} required min="1" max="604" data-testid="session-to-page-input" />
               </div>
             </div>
             <DialogFooter>
@@ -275,29 +212,14 @@ const Sessions = () => {
                 <div className="p-3 bg-muted rounded-lg"><p className="text-sm text-muted-foreground">{t('teacherName')}</p><p className="font-medium">{getTeacherName(selectedSession.teacher_id)}</p></div>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-muted rounded-lg text-center"><Clock className="h-5 w-5 mx-auto mb-1 text-primary" /><p className="text-sm text-muted-foreground">{t('duration')}</p><p className="font-bold">{selectedSession.duration_minutes} min</p></div>
-                <div className="p-3 bg-muted rounded-lg text-center"><FileText className="h-5 w-5 mx-auto mb-1 text-primary" /><p className="text-sm text-muted-foreground">{t('totalPages')}</p><p className="font-bold">{selectedSession.total_pages}</p></div>
-                <div className="p-3 bg-muted rounded-lg text-center"><AlertCircle className="h-5 w-5 mx-auto mb-1 text-destructive" /><p className="text-sm text-muted-foreground">{t('totalErrors')}</p><p className="font-bold">{selectedSession.total_errors}</p></div>
+                <div className="p-3 bg-muted rounded-lg text-center"><p className="text-sm text-muted-foreground">{t('duration')}</p><p className="font-bold">{selectedSession.duration_minutes} min</p></div>
+                <div className="p-3 bg-muted rounded-lg text-center"><p className="text-sm text-muted-foreground">{t('totalPages')}</p><p className="font-bold">{selectedSession.total_pages}</p></div>
+                <div className="p-3 bg-muted rounded-lg text-center"><p className="text-sm text-muted-foreground">{t('totalErrors')}</p><p className="font-bold">{selectedSession.total_errors}</p></div>
               </div>
               <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
                 <div><p className="text-sm text-muted-foreground">{t('finalScore')}</p><p className="text-3xl font-bold text-primary">{selectedSession.final_score?.toFixed(1)}%</p></div>
                 <Badge className={`${getResultColor(selectedSession.result)} text-lg px-4 py-2`}>{t(selectedSession.result)}</Badge>
               </div>
-              {selectedSession.errors && selectedSession.errors.length > 0 && (
-                <div className="space-y-2">
-                  <p className="font-medium">{t('errorTracking')}:</p>
-                  <div className="max-h-40 overflow-y-auto space-y-2">
-                    {selectedSession.errors.map((err, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg text-sm">
-                        <Badge className="bg-red-100 text-red-700">{t(err.category)}</Badge>
-                        <span>Page {err.page_number}</span>
-                        {err.word && <span className="text-muted-foreground">"{err.word}"</span>}
-                        <Badge variant="outline" className="ms-auto">-{err.penalty}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </DialogContent>
