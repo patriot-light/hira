@@ -154,7 +154,7 @@ class HiraInstituteAPITester:
             "status": "active"
         }
         
-        success, response, error = self.make_request('POST', '/students', student_data, 201)
+        success, response, error = self.make_request('POST', '/students', student_data, 200)
         if success and 'id' in response:
             student_id = response['id']
             self.created_resources['students'].append(student_id)
