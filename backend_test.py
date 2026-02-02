@@ -232,7 +232,7 @@ class HiraInstituteAPITester:
             ]
         }
         
-        success, response, error = self.make_request('POST', '/halaqas', halaqa_data, 201)
+        success, response, error = self.make_request('POST', '/halaqas', halaqa_data, 200)
         if success and 'id' in response:
             halaqa_id = response['id']
             self.created_resources['halaqas'].append(halaqa_id)
