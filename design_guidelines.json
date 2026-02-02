@@ -1,0 +1,106 @@
+{
+  "identity": {
+    "name": "Hira Institute",
+    "mission": "Modernizing Quranic education with a blend of spiritual tradition and Swiss-style precision.",
+    "tone": "Serene, Professional, Structured, Uplifting",
+    "archetype": "Organic & Earthy (with a Digital Twist)"
+  },
+  "typography": {
+    "primary_font": "Manrope",
+    "secondary_font": "IBM Plex Sans Arabic",
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700
+    },
+    "usage": {
+      "headings": "Manrope (English) / IBM Plex Sans Arabic (Arabic) - Bold, Tight Tracking",
+      "body": "Manrope (English) / IBM Plex Sans Arabic (Arabic) - Regular, Relaxed Leading",
+      "ui_elements": "Manrope - Medium, Uppercase for labels"
+    }
+  },
+  "colors": {
+    "brand": {
+      "primary": "#12a89d",
+      "primary_foreground": "#ffffff",
+      "secondary": "#2ab572",
+      "secondary_foreground": "#ffffff"
+    },
+    "neutrals": {
+      "background": "#fdfbf7",
+      "surface": "#ffffff",
+      "border": "#e2e8f0",
+      "text_primary": "#0f172a",
+      "text_secondary": "#64748b"
+    },
+    "accents": {
+      "gold": "#d97706",
+      "error": "#ef4444",
+      "success": "#10b981"
+    },
+    "gradients": {
+      "hero": "linear-gradient(135deg, #12a89d 0%, #2ab572 100%)",
+      "subtle": "linear-gradient(180deg, rgba(18, 168, 157, 0.05) 0%, rgba(255, 255, 255, 0) 100%)"
+    }
+  },
+  "layout": {
+    "grid_system": "Bento Grid (CSS Grid)",
+    "spacing_scale": "Generous (p-6, p-8, p-12)",
+    "container_width": "max-w-7xl",
+    "radius": "0.75rem (rounded-xl)"
+  },
+  "components": {
+    "buttons": {
+      "style": "Pill-shaped or Rounded-lg",
+      "interaction": "Transform -translate-y-0.5 on hover, shadow-lg"
+    },
+    "cards": {
+      "style": "Flat white surface, 1px border-border, subtle shadow-sm",
+      "hover": "border-primary/50 shadow-md transition-all duration-300"
+    },
+    "inputs": {
+      "style": "bg-white border-input focus:ring-2 focus:ring-primary/20"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Subtle noise overlay on backgrounds to reduce digital flatness.",
+    "patterns": "Islamic geometric patterns used as low-opacity (5%) background watermarks.",
+    "shadows": "Soft, diffuse shadows (shadow-lg: 0 10px 15px -3px rgba(18, 168, 157, 0.1))"
+  },
+  "media": {
+    "images": [
+      {
+        "url": "https://images.pexels.com/photos/3038740/pexels-photo-3038740.jpeg",
+        "description": "Geometric Islamic Pattern - Use as subtle background texture or section divider",
+        "category": "texture"
+      },
+      {
+        "url": "https://images.pexels.com/photos/28428589/pexels-photo-28428589.jpeg",
+        "description": "Detailed Mosaic Pattern - Use for login page sidebar or hero section overlay",
+        "category": "hero"
+      }
+    ],
+    "icons": "Lucide React (Default) or Phosphor Icons (for more weight)"
+  },
+  "accessibility": {
+    "contrast": "Ensure 4.5:1 for text. Use darker teal (#0d7a71) for text on white if needed.",
+    "rtl_support": "CRITICAL: All layouts must support dir='rtl'. Use logical properties (ms-*, me-*, start-*, end-*) instead of left/right."
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Install 'lucide-react', 'recharts', 'framer-motion', 'clsx', 'tailwind-merge'.",
+    "2. THEME: Implement the 'Organic & Earthy' archetype. Use the provided #fdfbf7 as the main background to avoid clinical white.",
+    "3. RTL: Ensure the <html> tag gets dir='rtl' when Arabic is selected. Test all flex/grid layouts for reversibility.",
+    "4. DASHBOARD: Build a 'Bento' grid layout for the main dashboard. Don't use equal-sized cards. Make the 'Current Hifz Progress' card dominant.",
+    "5. RECITATION UI: Create a custom component for 'Tasmee'. It should look like a media player but for tracking errors (Tajweed buttons).",
+    "6. HALAQA: Use a 'Kanban' or 'List' view for managing students in a circle. Avoid complex tables on mobile.",
+    "7. REPORTS: Use Recharts for progress. Style them with the brand teal/green gradients.",
+    "8. AUTH: Login page should be split 50/50. Left side form, Right side Islamic pattern image."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic gradients, no 'Inter' font for headings.",
+    "Micro-interactions: Every button press, card hover, and tab switch must have a spring animation.",
+    "Data-TestID: Add data-testid to all interactive elements.",
+    "No Lorem Ipsum: Use real Islamic content (e.g., 'Surah Al-Fatiha', 'Juz 1', 'Student: Ahmed Ali')."
+  ]
+}
