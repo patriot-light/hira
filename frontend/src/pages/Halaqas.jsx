@@ -45,9 +45,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const DAYS_LIST = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
 const Halaqas = () => {
   const { t } = useTranslation();
-  const { canManage, isStudent } = useAuth();
+  const { canManage } = useAuth();
   const [halaqas, setHalaqas] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
@@ -64,13 +66,9 @@ const Halaqas = () => {
     teacher_ids: [],
     schedule: []
   });
-  const [scheduleItem, setScheduleItem] = useState({
-    day: '',
-    start_time: '',
-    end_time: ''
-  });
-
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const [scheduleDay, setScheduleDay] = useState('');
+  const [scheduleStart, setScheduleStart] = useState('');
+  const [scheduleEnd, setScheduleEnd] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -78,11 +76,9 @@ const Halaqas = () => {
 
   const fetchData = async () => {
     try {
-      const [halaqasRes, teachersRes, studentsRes] = await Promise.all([
-        halaqasAPI.getAll(),
-        teachersAPI.getAll(),
-        studentsAPI.getAll()
-      ]);
+      const halaqasRes = await halaqasAPI.getAll();
+      const teachersRes = await teachersAPI.getAll();
+      const studentsRes = await studentsAPI.getAll();
       setHalaqas(halaqasRes.data);
       setTeachers(teachersRes.data);
       setAllStudents(studentsRes.data);
@@ -174,45 +170,41 @@ const Halaqas = () => {
 
   const resetForm = () => {
     setSelectedHalaqa(null);
-    setFormData({
-      name: '',
-      level: 'beginner',
-      teacher_ids: [],
-      schedule: []
-    });
+    setFormData({ name: '', level: 'beginner', teacher_ids: [], schedule: [] });
+    setScheduleDay('');
+    setScheduleStart('');
+    setScheduleEnd('');
   };
 
   const addScheduleItem = () => {
-    if (scheduleItem.day && scheduleItem.start_time && scheduleItem.end_time) {
-      setFormData({
-        ...formData,
-        schedule: [...formData.schedule, { ...scheduleItem }]
-      });
-      setScheduleItem({ day: '', start_time: '', end_time: '' });
+    if (scheduleDay && scheduleStart && scheduleEnd) {
+      const newSchedule = [...formData.schedule, { day: scheduleDay, start_time: scheduleStart, end_time: scheduleEnd }];
+      setFormData({ ...formData, schedule: newSchedule });
+      setScheduleDay('');
+      setScheduleStart('');
+      setScheduleEnd('');
     }
   };
 
   const removeScheduleItem = (index) => {
-    setFormData({
-      ...formData,
-      schedule: formData.schedule.filter((_, i) => i !== index)
-    });
+    const newSchedule = formData.schedule.filter((_, i) => i !== index);
+    setFormData({ ...formData, schedule: newSchedule });
   };
 
   const getLevelColor = (level) => {
-    switch (level) {
-      case 'beginner': return 'bg-blue-100 text-blue-700';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-700';
-      case 'advanced': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
+    if (level === 'beginner') return 'bg-blue-100 text-blue-700';
+    if (level === 'intermediate') return 'bg-yellow-100 text-yellow-700';
+    if (level === 'advanced') return 'bg-green-100 text-green-700';
+    return 'bg-gray-100 text-gray-700';
   };
 
   const getTeacherNames = (teacherIds) => {
-    return teacherIds?.map(id => {
+    if (!teacherIds || teacherIds.length === 0) return '-';
+    const names = teacherIds.map(id => {
       const teacher = teachers.find(t => t.id === id);
-      return teacher?.full_name;
-    }).filter(Boolean).join(', ') || '-';
+      return teacher ? teacher.full_name : null;
+    }).filter(Boolean);
+    return names.length > 0 ? names.join(', ') : '-';
   };
 
   const getStudentCount = (halaqaId) => {
@@ -235,16 +227,13 @@ const Halaqas = () => {
 
   return (
     <div className="space-y-6" data-testid="halaqas-page">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
             <BookOpen className="h-8 w-8 text-primary" />
             {t('halaqas')}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {halaqas.length} {t('halaqas')}
-          </p>
+          <p className="text-muted-foreground mt-1">{halaqas.length} {t('halaqas')}</p>
         </div>
         {canManage() && (
           <Button 
@@ -258,7 +247,6 @@ const Halaqas = () => {
         )}
       </div>
 
-      {/* Search */}
       <Card>
         <CardContent className="p-4">
           <div className="relative">
@@ -274,13 +262,10 @@ const Halaqas = () => {
         </CardContent>
       </Card>
 
-      {/* Halaqas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredHalaqas.length === 0 ? (
           <Card className="col-span-full">
-            <CardContent className="p-8 text-center text-muted-foreground">
-              {t('noData')}
-            </CardContent>
+            <CardContent className="p-8 text-center text-muted-foreground">{t('noData')}</CardContent>
           </Card>
         ) : (
           filteredHalaqas.map((halaqa) => (
@@ -293,9 +278,7 @@ const Halaqas = () => {
                     </div>
                     <div>
                       <CardTitle className="text-lg">{halaqa.name}</CardTitle>
-                      <Badge className={getLevelColor(halaqa.level)}>
-                        {t(halaqa.level)}
-                      </Badge>
+                      <Badge className={getLevelColor(halaqa.level)}>{t(halaqa.level)}</Badge>
                     </div>
                   </div>
                   {canManage() && (
@@ -307,19 +290,16 @@ const Halaqas = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(halaqa)}>
-                          <Edit className="h-4 w-4 me-2" />
-                          {t('edit')}
+                          <Edit className="h-4 w-4 me-2" />{t('edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleManageStudents(halaqa)}>
-                          <Users className="h-4 w-4 me-2" />
-                          {t('manageStudents')}
+                          <Users className="h-4 w-4 me-2" />{t('manageStudents')}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => { setSelectedHalaqa(halaqa); setDeleteDialogOpen(true); }}
                           className="text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 me-2" />
-                          {t('delete')}
+                          <Trash2 className="h-4 w-4 me-2" />{t('delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -327,26 +307,20 @@ const Halaqas = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Teacher */}
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t('assignedTeachers')}:</span>
                   <span className="truncate">{getTeacherNames(halaqa.teacher_ids)}</span>
                 </div>
-
-                {/* Students count */}
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{t('studentsCount')}:</span>
                   <Badge variant="outline">{getStudentCount(halaqa.id)}</Badge>
                 </div>
-
-                {/* Schedule */}
                 {halaqa.schedule && halaqa.schedule.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>{t('schedule')}:</span>
+                      <Calendar className="h-4 w-4" /><span>{t('schedule')}:</span>
                     </div>
                     <div className="space-y-1">
                       {halaqa.schedule.map((s, index) => (
@@ -365,13 +339,10 @@ const Halaqas = () => {
         )}
       </div>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {selectedHalaqa ? t('editHalaqa') : t('addHalaqa')}
-            </DialogTitle>
+            <DialogTitle>{selectedHalaqa ? t('editHalaqa') : t('addHalaqa')}</DialogTitle>
             <DialogDescription>
               {selectedHalaqa ? 'Update halaqa information' : 'Create a new study circle'}
             </DialogDescription>
@@ -387,16 +358,10 @@ const Halaqas = () => {
                 data-testid="halaqa-name-input"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="level">{t('level')} *</Label>
-              <Select
-                value={formData.level}
-                onValueChange={(value) => setFormData({ ...formData, level: value })}
-              >
-                <SelectTrigger data-testid="halaqa-level-select">
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
+                <SelectTrigger data-testid="halaqa-level-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="beginner">{t('beginner')}</SelectItem>
                   <SelectItem value="intermediate">{t('intermediate')}</SelectItem>
@@ -404,7 +369,6 @@ const Halaqas = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label>{t('assignedTeachers')}</Label>
               <Select
@@ -416,96 +380,54 @@ const Halaqas = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {teachers.map((teacher) => (
-                    <SelectItem key={teacher.id} value={teacher.id}>
-                      {teacher.full_name}
-                    </SelectItem>
+                    <SelectItem key={teacher.id} value={teacher.id}>{teacher.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Schedule Section */}
             <div className="space-y-3">
               <Label>{t('schedule')}</Label>
-              
-              {/* Existing schedule items */}
               {formData.schedule.map((item, index) => (
                 <div key={index} className="flex items-center gap-2 bg-muted rounded-lg p-2">
                   <span className="flex-1 text-sm capitalize">{t(item.day)}: {item.start_time} - {item.end_time}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeScheduleItem(index)}
-                    className="h-8 w-8"
-                  >
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeScheduleItem(index)} className="h-8 w-8">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-
-              {/* Add new schedule item */}
               <div className="grid grid-cols-3 gap-2">
-                <Select
-                  value={scheduleItem.day}
-                  onValueChange={(value) => setScheduleItem({ ...scheduleItem, day: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('day')} />
-                  </SelectTrigger>
+                <Select value={scheduleDay} onValueChange={setScheduleDay}>
+                  <SelectTrigger><SelectValue placeholder={t('day')} /></SelectTrigger>
                   <SelectContent>
-                    {days.map((day) => (
-                      <SelectItem key={day} value={day}>{t(day)}</SelectItem>
-                    ))}
+                    {DAYS_LIST.map((day) => (<SelectItem key={day} value={day}>{t(day)}</SelectItem>))}
                   </SelectContent>
                 </Select>
-                <Input
-                  type="time"
-                  value={scheduleItem.start_time}
-                  onChange={(e) => setScheduleItem({ ...scheduleItem, start_time: e.target.value })}
-                  placeholder={t('startTime')}
-                />
-                <Input
-                  type="time"
-                  value={scheduleItem.end_time}
-                  onChange={(e) => setScheduleItem({ ...scheduleItem, end_time: e.target.value })}
-                  placeholder={t('endTime')}
-                />
+                <Input type="time" value={scheduleStart} onChange={(e) => setScheduleStart(e.target.value)} placeholder={t('startTime')} />
+                <Input type="time" value={scheduleEnd} onChange={(e) => setScheduleEnd(e.target.value)} placeholder={t('endTime')} />
               </div>
               <Button type="button" variant="outline" onClick={addScheduleItem} className="w-full">
-                <Plus className="h-4 w-4 me-2" />
-                Add Schedule
+                <Plus className="h-4 w-4 me-2" />Add Schedule
               </Button>
             </div>
-
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                {t('cancel')}
-              </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" data-testid="save-halaqa-btn">
-                {t('save')}
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t('cancel')}</Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90" data-testid="save-halaqa-btn">{t('save')}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Manage Students Dialog */}
       <Dialog open={manageStudentsOpen} onOpenChange={setManageStudentsOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('manageStudents')}: {selectedHalaqa?.name}</DialogTitle>
-            <DialogDescription>
-              Add or remove students from this halaqa
-            </DialogDescription>
+            <DialogDescription>Add or remove students from this halaqa</DialogDescription>
           </DialogHeader>
-          
           <Tabs defaultValue="current" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="current">Current ({halaqaStudents.length})</TabsTrigger>
               <TabsTrigger value="add">Add ({unassignedStudents.length})</TabsTrigger>
             </TabsList>
-            
             <TabsContent value="current" className="space-y-2 mt-4">
               {halaqaStudents.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">No students assigned</p>
@@ -513,21 +435,13 @@ const Halaqas = () => {
                 halaqaStudents.map((student) => (
                   <div key={student.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="font-medium">{student.full_name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveStudent(student.id)}
-                      className="text-destructive hover:text-destructive"
-                      data-testid={`remove-student-${student.id}`}
-                    >
-                      <UserMinus className="h-4 w-4 me-1" />
-                      Remove
+                    <Button variant="ghost" size="sm" onClick={() => handleRemoveStudent(student.id)} className="text-destructive hover:text-destructive" data-testid={`remove-student-${student.id}`}>
+                      <UserMinus className="h-4 w-4 me-1" />Remove
                     </Button>
                   </div>
                 ))
               )}
             </TabsContent>
-            
             <TabsContent value="add" className="space-y-2 mt-4">
               {unassignedStudents.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">No unassigned students</p>
@@ -535,15 +449,8 @@ const Halaqas = () => {
                 unassignedStudents.map((student) => (
                   <div key={student.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="font-medium">{student.full_name}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAssignStudent(student.id)}
-                      className="text-primary hover:text-primary"
-                      data-testid={`assign-student-${student.id}`}
-                    >
-                      <UserPlus className="h-4 w-4 me-1" />
-                      Add
+                    <Button variant="ghost" size="sm" onClick={() => handleAssignStudent(student.id)} className="text-primary hover:text-primary" data-testid={`assign-student-${student.id}`}>
+                      <UserPlus className="h-4 w-4 me-1" />Add
                     </Button>
                   </div>
                 ))
@@ -553,7 +460,6 @@ const Halaqas = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -563,12 +469,8 @@ const Halaqas = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              {t('cancel')}
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} data-testid="confirm-delete-halaqa-btn">
-              {t('delete')}
-            </Button>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>{t('cancel')}</Button>
+            <Button variant="destructive" onClick={handleDelete} data-testid="confirm-delete-halaqa-btn">{t('delete')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
