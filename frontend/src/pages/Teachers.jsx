@@ -79,7 +79,8 @@ const Teachers = () => {
     try {
       const data = {
         ...formData,
-        experience_years: parseInt(formData.experience_years) || 0
+        experience_years: parseInt(formData.experience_years) || 0,
+        password: formData.password || null
       };
 
       if (selectedTeacher) {
@@ -116,7 +117,8 @@ const Teachers = () => {
       qualification: teacher.qualification || '',
       experience_years: teacher.experience_years?.toString() || '',
       phone: teacher.phone || '',
-      email: teacher.email || ''
+      email: teacher.email || '',
+      password: ''
     });
     setDialogOpen(true);
   };
@@ -128,6 +130,10 @@ const Teachers = () => {
       qualification: '',
       experience_years: '',
       phone: '',
+      email: '',
+      password: ''
+    });
+  };
       email: ''
     });
   };
