@@ -326,6 +326,20 @@ const Teachers = () => {
                   data-testid="teacher-email-input"
                 />
               </div>
+              {!selectedTeacher && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t('password')}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Set password for teacher login"
+                    data-testid="teacher-password-input"
+                  />
+                  <p className="text-xs text-muted-foreground">Provide email and password to create login account</p>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
