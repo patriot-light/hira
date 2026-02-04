@@ -66,6 +66,7 @@ const Students = () => {
     national_id: '',
     phone: '',
     email: '',
+    password: '',
     status: 'active',
     halaqa_id: ''
   });
