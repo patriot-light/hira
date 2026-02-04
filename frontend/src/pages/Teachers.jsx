@@ -134,9 +134,6 @@ const Teachers = () => {
       password: ''
     });
   };
-      email: ''
-    });
-  };
 
   const filteredTeachers = teachers.filter(teacher =>
     teacher.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
