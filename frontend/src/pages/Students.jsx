@@ -136,6 +136,7 @@ const Students = () => {
       national_id: student.national_id || '',
       phone: student.phone || '',
       email: student.email || '',
+      password: '',
       status: student.status || 'active',
       halaqa_id: student.halaqa_id || ''
     });
@@ -149,6 +150,12 @@ const Students = () => {
       age: '',
       national_id: '',
       phone: '',
+      email: '',
+      password: '',
+      status: 'active',
+      halaqa_id: ''
+    });
+  };
       email: '',
       status: 'active',
       halaqa_id: ''
