@@ -54,7 +54,8 @@ const Teachers = () => {
     qualification: '',
     experience_years: '',
     phone: '',
-    email: ''
+    email: '',
+    password: ''
   });
 
   useEffect(() => {
