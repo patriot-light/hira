@@ -428,6 +428,20 @@ const Students = () => {
                   data-testid="student-email-input"
                 />
               </div>
+              {!selectedStudent && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">{t('password')}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Set password for student login"
+                    data-testid="student-password-input"
+                  />
+                  <p className="text-xs text-muted-foreground">Provide email and password to create login account</p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="halaqa">{t('assignToHalaqa')}</Label>
                 <Select
