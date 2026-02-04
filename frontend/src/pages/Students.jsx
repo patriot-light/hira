@@ -97,7 +97,8 @@ const Students = () => {
       const data = {
         ...formData,
         age: parseInt(formData.age) || 0,
-        halaqa_id: formData.halaqa_id || null
+        halaqa_id: formData.halaqa_id || null,
+        password: formData.password || null
       };
 
       if (selectedStudent) {
