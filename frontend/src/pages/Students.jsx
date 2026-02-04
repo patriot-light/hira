@@ -156,11 +156,6 @@ const Students = () => {
       halaqa_id: ''
     });
   };
-      email: '',
-      status: 'active',
-      halaqa_id: ''
-    });
-  };
 
   const handleExportExcel = async () => {
     try {
