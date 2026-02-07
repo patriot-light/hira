@@ -12,10 +12,8 @@ class RecitationErrorBase(BaseModel):
     word: Optional[str] = None
     penalty: float = Field(ge=0, default=1.0)
 
-
 class RecitationError(RecitationErrorBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-
 
 class RecitationSessionBase(BaseModel):
     student_id: str
@@ -25,10 +23,8 @@ class RecitationSessionBase(BaseModel):
     to_page: int
     errors: List[RecitationError] = []
 
-
 class RecitationSessionCreate(RecitationSessionBase):
     pass
-
 
 class RecitationSession(RecitationSessionBase):
     model_config = ConfigDict(extra="ignore")
