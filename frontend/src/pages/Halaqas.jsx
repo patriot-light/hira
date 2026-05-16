@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { halaqasAPI, teachersAPI, studentsAPI } from "../services/api";
@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
@@ -60,13 +61,9 @@ const Halaqas = () => {
   const [selectedHalaqa, setSelectedHalaqa] = useState(null);
   const [formName, setFormName] = useState("");
   const [formLevel, setFormLevel] = useState("beginner");
-  const [formTeacherId, setFormTeacherId] = useState("");
+  const [formTeacherIds, setFormTeacherIds] = useState([]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [h, tc, st] = await Promise.all([
         halaqasAPI.getAll(),
@@ -81,7 +78,11 @@ const Halaqas = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,7 +90,7 @@ const Halaqas = () => {
       const data = {
         name: formName,
         level: formLevel,
-        teacher_ids: formTeacherId ? [formTeacherId] : [],
+        teacher_ids: formTeacherIds,
         schedule: [],
       };
       if (selectedHalaqa) {
@@ -123,9 +124,7 @@ const Halaqas = () => {
     setSelectedHalaqa(halaqa);
     setFormName(halaqa.name);
     setFormLevel(halaqa.level);
-    setFormTeacherId(
-      halaqa.teacher_ids && halaqa.teacher_ids[0] ? halaqa.teacher_ids[0] : "",
-    );
+    setFormTeacherIds(halaqa.teacher_ids || []);
     setDialogOpen(true);
   };
 
@@ -133,7 +132,15 @@ const Halaqas = () => {
     setSelectedHalaqa(null);
     setFormName("");
     setFormLevel("beginner");
-    setFormTeacherId("");
+    setFormTeacherIds([]);
+  };
+
+  const toggleTeacher = (teacherId) => {
+    setFormTeacherIds((current) =>
+      current.includes(teacherId)
+        ? current.filter((id) => id !== teacherId)
+        : [...current, teacherId],
+    );
   };
 
   const getLevelColor = (level) => {
@@ -145,12 +152,14 @@ const Halaqas = () => {
 
   const getTeacherName = (ids) => {
     if (!ids || ids.length === 0) return "-";
-    const teacher = teachers.find((t) => t.id === ids[0]);
-    return teacher ? teacher.full_name : "-";
+    const names = ids
+      .map((id) => teachers.find((teacher) => teacher.id === id)?.full_name)
+      .filter(Boolean);
+    return names.length ? names.join(", ") : "-";
   };
 
   const getStudentCount = (halaqaId) =>
-    allStudents.filter((s) => s.halaqa_id === halaqaId).length;
+    allStudents.filter((s) => (s.halaqa_ids || (s.halaqa_id ? [s.halaqa_id] : [])).includes(halaqaId)).length;
 
   const filteredHalaqas = halaqas.filter((h) =>
     h.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -326,19 +335,24 @@ const Halaqas = () => {
             </div>
             <div className="space-y-2">
               <Label>{t("assignedTeachers")}</Label>
-              <Select value={formTeacherId} onValueChange={setFormTeacherId}>
-                <SelectTrigger data-testid="halaqa-teacher-select">
-                  <SelectValue placeholder="Select a teacher" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="-">None</SelectItem>
-                  {teachers.map((tc) => (
-                    <SelectItem key={tc.id} value={tc.id}>
-                      {tc.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid gap-2 rounded-md border p-3">
+                {teachers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("noData")}</p>
+                ) : (
+                  teachers.map((teacher) => (
+                    <label
+                      key={teacher.id}
+                      className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted"
+                    >
+                      <Checkbox
+                        checked={formTeacherIds.includes(teacher.id)}
+                        onCheckedChange={() => toggleTeacher(teacher.id)}
+                      />
+                      <span className="text-sm font-medium">{teacher.full_name}</span>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button

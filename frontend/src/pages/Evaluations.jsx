@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import { pageEvaluationsAPI, juzEvaluationsAPI, studentsAPI } from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Badge } from '../components/ui/badge';
-import { Textarea } from '../components/ui/textarea';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import {
+  errorTypesAPI,
+  examEvaluationsAPI,
+  studentsAPI,
+  teachersAPI,
+} from "../services/api";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -15,15 +18,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
+} from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+} from "../components/ui/select";
 import {
   Table,
   TableBody,
@@ -31,132 +34,184 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../components/ui/table';
-import { 
-  Plus, 
+} from "../components/ui/table";
+import { Textarea } from "../components/ui/textarea";
+import {
+  BookOpenCheck,
   ClipboardCheck,
-  BookOpen,
   Loader2,
+  MinusCircle,
+  Plus,
+  Save,
   Trash2,
-  FileText
-} from 'lucide-react';
-import { toast } from 'sonner';
+  FileText,
+} from "lucide-react";
+import { toast } from "sonner";
+
+const resultLabel = {
+  excellent: "Excellent",
+  very_good: "Very Good",
+  good: "Good",
+  needs_review: "Needs Review",
+};
+
+const getScoreColor = (score) => {
+  if (score >= 90) return "bg-green-100 text-green-700";
+  if (score >= 80) return "bg-blue-100 text-blue-700";
+  if (score >= 70) return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-700";
+};
+
+const getResult = (score) => {
+  if (score >= 90) return "excellent";
+  if (score >= 80) return "very_good";
+  if (score >= 70) return "good";
+  return "needs_review";
+};
 
 const Evaluations = () => {
   const { t } = useTranslation();
-  const { canEvaluate, isStudent } = useAuth();
-  const [pageEvaluations, setPageEvaluations] = useState([]);
-  const [juzEvaluations, setJuzEvaluations] = useState([]);
+  const navigate = useNavigate();
+  const { canEvaluate, isTeacher, user } = useAuth();
+  const [evaluations, setEvaluations] = useState([]);
+  const [errorTypes, setErrorTypes] = useState([]);
   const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pageDialogOpen, setPageDialogOpen] = useState(false);
-  const [juzDialogOpen, setJuzDialogOpen] = useState(false);
-  const [pageFormData, setPageFormData] = useState({
-    student_id: '',
-    page_number: '',
-    score: '',
-    notes: ''
+  const [examOpen, setExamOpen] = useState(false);
+  const [exam, setExam] = useState({
+    student_id: "",
+    teacher_id: "",
+    from_juz: "1",
+    to_juz: "1",
+    errors: [],
+    notes: "",
   });
-  const [juzFormData, setJuzFormData] = useState({
-    student_id: '',
-    juz_number: '',
-    memorization_score: '',
-    mastery_score: '',
-    notes: ''
-  });
+  const teacherLocked = isTeacher();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const [pageRes, juzRes, studentsRes] = await Promise.all([
-        pageEvaluationsAPI.getAll(),
-        juzEvaluationsAPI.getAll(),
-        studentsAPI.getAll()
+      const [examRes, errorRes, studentRes, teacherRes] = await Promise.all([
+        examEvaluationsAPI.getAll(),
+        errorTypesAPI.getAll(),
+        studentsAPI.getAll(),
+        teachersAPI.getAll(),
       ]);
-      setPageEvaluations(pageRes.data);
-      setJuzEvaluations(juzRes.data);
-      setStudents(studentsRes.data);
+      setEvaluations(examRes.data);
+      setErrorTypes(errorRes.data);
+      setStudents(studentRes.data);
+      setTeachers(teacherRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error(t('error'));
+      toast.error(t("error"));
     } finally {
       setLoading(false);
     }
+  }, [t]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const totalDeduction = useMemo(
+    () => exam.errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0),
+    [exam.errors],
+  );
+  const loggedTeacher = useMemo(
+    () => teachers.find((teacher) => teacher.user_id === user?.id),
+    [teachers, user],
+  );
+  const liveScore = Math.max(0, 100 - totalDeduction);
+  const liveResult = getResult(liveScore);
+
+  const resetExam = () => {
+    setExam({
+      student_id: "",
+      teacher_id: teacherLocked && loggedTeacher ? loggedTeacher.id : "",
+      from_juz: "1",
+      to_juz: "1",
+      errors: [],
+      notes: "",
+    });
   };
 
-  const handlePageSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (teacherLocked && loggedTeacher) {
+      setExam((current) => ({ ...current, teacher_id: loggedTeacher.id }));
+    }
+  }, [teacherLocked, loggedTeacher]);
+
+  const addError = (errorType) => {
+    setExam((current) => ({
+      ...current,
+      errors: [
+        ...current.errors,
+        {
+          error_type_id: errorType.id,
+          name: errorType.name,
+          deduction: Number(errorType.deduction),
+          note: "",
+        },
+      ],
+    }));
+  };
+
+  const removeError = (index) => {
+    setExam((current) => ({
+      ...current,
+      errors: current.errors.filter((_, errorIndex) => errorIndex !== index),
+    }));
+  };
+
+  const handleSaveExam = async (event) => {
+    event.preventDefault();
+    if (!exam.student_id) {
+      toast.error("Please select a student");
+      return;
+    }
+    if (Number(exam.from_juz) > Number(exam.to_juz)) {
+      toast.error("The starting Juz must be before the ending Juz");
+      return;
+    }
+
     try {
-      await pageEvaluationsAPI.create({
-        ...pageFormData,
-        page_number: parseInt(pageFormData.page_number),
-        score: parseFloat(pageFormData.score)
+      await examEvaluationsAPI.create({
+        ...exam,
+        from_juz: Number(exam.from_juz),
+        to_juz: Number(exam.to_juz),
+        teacher_id: exam.teacher_id || null,
       });
-      toast.success(t('evaluationCreated'));
-      setPageDialogOpen(false);
-      setPageFormData({ student_id: '', page_number: '', score: '', notes: '' });
+      toast.success(t("evaluationCreated"));
+      setExamOpen(false);
+      resetExam();
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || t('error'));
+      toast.error(error.response?.data?.detail || t("error"));
     }
   };
 
-  const handleJuzSubmit = async (e) => {
-    e.preventDefault();
+  const handleDeleteExam = async (id) => {
     try {
-      await juzEvaluationsAPI.create({
-        ...juzFormData,
-        juz_number: parseInt(juzFormData.juz_number),
-        memorization_score: parseFloat(juzFormData.memorization_score),
-        mastery_score: parseFloat(juzFormData.mastery_score)
-      });
-      toast.success(t('evaluationCreated'));
-      setJuzDialogOpen(false);
-      setJuzFormData({ student_id: '', juz_number: '', memorization_score: '', mastery_score: '', notes: '' });
+      await examEvaluationsAPI.delete(id);
+      toast.success("Evaluation deleted");
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || t('error'));
+      toast.error(t("error"));
     }
   };
 
-  const handleDeletePageEval = async (id) => {
-    try {
-      await pageEvaluationsAPI.delete(id);
-      toast.success('Evaluation deleted');
-      fetchData();
-    } catch (error) {
-      toast.error(t('error'));
-    }
-  };
+  const getStudentName = (id) =>
+    students.find((student) => student.id === id)?.full_name || "-";
 
-  const handleDeleteJuzEval = async (id) => {
-    try {
-      await juzEvaluationsAPI.delete(id);
-      toast.success('Evaluation deleted');
-      fetchData();
-    } catch (error) {
-      toast.error(t('error'));
-    }
-  };
+  const getTeacherName = (id) =>
+    teachers.find((teacher) => teacher.id === id)?.full_name || "-";
 
-  const getStudentName = (studentId) => {
-    const student = students.find(s => s.id === studentId);
-    return student?.full_name || '-';
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 90) return 'bg-green-100 text-green-700';
-    if (score >= 80) return 'bg-blue-100 text-blue-700';
-    if (score >= 70) return 'bg-yellow-100 text-yellow-700';
-    return 'bg-red-100 text-red-700';
-  };
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString();
-  };
+  const groupedErrors = exam.errors.reduce((groups, error, index) => {
+    const key = error.error_type_id || error.name;
+    if (!groups[key]) groups[key] = { ...error, count: 0, indexes: [] };
+    groups[key].count += 1;
+    groups[key].indexes.push(index);
+    return groups;
+  }, {});
 
   if (loading) {
     return (
@@ -168,352 +223,310 @@ const Evaluations = () => {
 
   return (
     <div className="space-y-6" data-testid="evaluations-page">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
             <ClipboardCheck className="h-8 w-8 text-primary" />
-            {t('evaluations')}
+            {t("evaluations")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {t('pageEvaluation')} & {t('juzEvaluation')}
+            {evaluations.length} saved exams
           </p>
         </div>
+        {canEvaluate() && (
+          <Button
+            onClick={() => {
+              resetExam();
+              setExamOpen(true);
+            }}
+            className="gap-2 bg-primary hover:bg-primary/90"
+            data-testid="start-exam-btn"
+          >
+            <BookOpenCheck className="h-4 w-4" />
+            Start Exam
+          </Button>
+        )}
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="page" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="page" className="gap-2">
-            <FileText className="h-4 w-4" />
-            {t('pageEvaluation')}
-          </TabsTrigger>
-          <TabsTrigger value="juz" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            {t('juzEvaluation')}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Page Evaluations Tab */}
-        <TabsContent value="page" className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{t('pageEvaluation')}</CardTitle>
-              {canEvaluate() && (
-                <Button 
-                  onClick={() => setPageDialogOpen(true)}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                  data-testid="add-page-eval-btn"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t('addEvaluation')}
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('studentName')}</TableHead>
-                      <TableHead>{t('pageNumber')}</TableHead>
-                      <TableHead>{t('score')}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t('notes')}</TableHead>
-                      <TableHead className="hidden md:table-cell">Date</TableHead>
-                      {canEvaluate() && <TableHead className="w-12"></TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pageEvaluations.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          {t('noData')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      pageEvaluations.map((eval_) => (
-                        <TableRow key={eval_.id} data-testid={`page-eval-row-${eval_.id}`}>
-                          <TableCell className="font-medium">{getStudentName(eval_.student_id)}</TableCell>
-                          <TableCell>{eval_.page_number}</TableCell>
-                          <TableCell>
-                            <Badge className={getScoreColor(eval_.score)}>
-                              {eval_.score}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell max-w-[200px] truncate">
-                            {eval_.notes || '-'}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{formatDate(eval_.date)}</TableCell>
+      <Card>
+        <CardHeader>
+          <CardTitle>Exam Results</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("studentName")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("teacherName")}
+                  </TableHead>
+                  <TableHead>Range</TableHead>
+                  <TableHead>{t("totalErrors")}</TableHead>
+                  <TableHead>{t("finalScore")}</TableHead>
+                  <TableHead>{t("result")}</TableHead>
+                  <TableHead className="w-24">{t("actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {evaluations.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="py-8 text-center text-muted-foreground"
+                    >
+                      {t("noData")}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  evaluations.map((evaluation) => (
+                    <TableRow key={evaluation.id}>
+                      <TableCell className="font-medium">
+                        {getStudentName(evaluation.student_id)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {getTeacherName(evaluation.teacher_id)}
+                      </TableCell>
+                      <TableCell>
+                        Juz {evaluation.from_juz}-{evaluation.to_juz}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={evaluation.total_errors ? "destructive" : "outline"}>
+                          {evaluation.total_errors}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getScoreColor(evaluation.final_score)}>
+                          {evaluation.final_score}%
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{resultLabel[evaluation.result]}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/evaluations/${evaluation.id}`)}
+                            data-testid={`view-evaluation-${evaluation.id}`}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
                           {canEvaluate() && (
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeletePageEval(eval_.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteExam(evaluation.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                           )}
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Juz Evaluations Tab */}
-        <TabsContent value="juz" className="mt-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{t('juzEvaluation')}</CardTitle>
-              {canEvaluate() && (
-                <Button 
-                  onClick={() => setJuzDialogOpen(true)}
-                  className="gap-2 bg-primary hover:bg-primary/90"
-                  data-testid="add-juz-eval-btn"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t('addEvaluation')}
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('studentName')}</TableHead>
-                      <TableHead>{t('juzNumber')}</TableHead>
-                      <TableHead>{t('memorization')}</TableHead>
-                      <TableHead>{t('mastery')}</TableHead>
-                      <TableHead className="hidden md:table-cell">Date</TableHead>
-                      {canEvaluate() && <TableHead className="w-12"></TableHead>}
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {juzEvaluations.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          {t('noData')}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      juzEvaluations.map((eval_) => (
-                        <TableRow key={eval_.id} data-testid={`juz-eval-row-${eval_.id}`}>
-                          <TableCell className="font-medium">{getStudentName(eval_.student_id)}</TableCell>
-                          <TableCell>Juz {eval_.juz_number}</TableCell>
-                          <TableCell>
-                            <Badge className={getScoreColor(eval_.memorization_score)}>
-                              {eval_.memorization_score}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getScoreColor(eval_.mastery_score)}>
-                              {eval_.mastery_score}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{formatDate(eval_.date)}</TableCell>
-                          {canEvaluate() && (
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteJuzEval(eval_.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Page Evaluation Dialog */}
-      <Dialog open={pageDialogOpen} onOpenChange={setPageDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={examOpen} onOpenChange={setExamOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           <DialogHeader>
-            <DialogTitle>{t('pageEvaluation')}</DialogTitle>
+            <DialogTitle>New Exam</DialogTitle>
             <DialogDescription>
-              Record a page evaluation for a student
+              Select the range, tap each error, then save the final grade.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handlePageSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="student">{t('studentName')} *</Label>
-              <Select
-                value={pageFormData.student_id}
-                onValueChange={(value) => setPageFormData({ ...pageFormData, student_id: value })}
-              >
-                <SelectTrigger data-testid="page-eval-student-select">
-                  <SelectValue placeholder="Select a student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.full_name}
-                    </SelectItem>
+          <form onSubmit={handleSaveExam} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t("studentName")} *</Label>
+                <Select
+                  value={exam.student_id}
+                  onValueChange={(value) =>
+                    setExam((current) => ({ ...current, student_id: value }))
+                  }
+                >
+                  <SelectTrigger data-testid="exam-student-select">
+                    <SelectValue placeholder="Select student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t("teacherName")}</Label>
+                <Select
+                  value={exam.teacher_id}
+                  disabled={teacherLocked}
+                  onValueChange={(value) =>
+                    setExam((current) => ({ ...current, teacher_id: value }))
+                  }
+                >
+                  <SelectTrigger data-testid="exam-teacher-select">
+                    <SelectValue placeholder="Select teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>From Juz</Label>
+                <Select
+                  value={exam.from_juz}
+                  onValueChange={(value) =>
+                    setExam((current) => ({ ...current, from_juz: value }))
+                  }
+                >
+                  <SelectTrigger data-testid="exam-from-juz-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
+                      <SelectItem key={juz} value={juz.toString()}>
+                        Juz {juz}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>To Juz</Label>
+                <Select
+                  value={exam.to_juz}
+                  onValueChange={(value) =>
+                    setExam((current) => ({ ...current, to_juz: value }))
+                  }
+                >
+                  <SelectTrigger data-testid="exam-to-juz-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
+                      <SelectItem key={juz} value={juz.toString()}>
+                        Juz {juz}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+              <div className="space-y-3">
+                <Label>Error Table</Label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {errorTypes.map((errorType) => (
+                    <Button
+                      key={errorType.id}
+                      type="button"
+                      variant="outline"
+                      className="h-auto min-h-20 justify-between gap-3 whitespace-normal p-4 text-left"
+                      onClick={() => addError(errorType)}
+                      data-testid={`exam-error-${errorType.id}`}
+                    >
+                      <span>
+                        <span className="block font-semibold">{errorType.name}</span>
+                        <span className="block text-sm text-muted-foreground">
+                          -{errorType.deduction} marks
+                        </span>
+                      </span>
+                      <Plus className="h-5 w-5 shrink-0" />
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="page_number">{t('pageNumber')} *</Label>
-                <Input
-                  id="page_number"
-                  type="number"
-                  value={pageFormData.page_number}
-                  onChange={(e) => setPageFormData({ ...pageFormData, page_number: e.target.value })}
-                  required
-                  min="1"
-                  max="604"
-                  data-testid="page-eval-page-input"
-                />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="score">{t('score')} (0-100) *</Label>
-                <Input
-                  id="score"
-                  type="number"
-                  value={pageFormData.score}
-                  onChange={(e) => setPageFormData({ ...pageFormData, score: e.target.value })}
-                  required
-                  min="0"
-                  max="100"
-                  data-testid="page-eval-score-input"
-                />
+
+              <div className="rounded-md border bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
+                <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
+                <Badge className={`${getScoreColor(liveScore)} mt-3`}>
+                  {resultLabel[liveResult]}
+                </Badge>
+                <div className="mt-5 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t("totalErrors")}</span>
+                    <strong>{exam.errors.length}</strong>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Total deduction</span>
+                    <strong>{totalDeduction}</strong>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <div className="space-y-3">
+              <Label>Recorded Errors</Label>
+              {exam.errors.length === 0 ? (
+                <div className="rounded-md border border-dashed p-5 text-center text-muted-foreground">
+                  No errors recorded
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  {Object.values(groupedErrors).map((error) => (
+                    <div
+                      key={error.error_type_id || error.name}
+                      className="flex items-center justify-between gap-3 rounded-md border p-3"
+                    >
+                      <div>
+                        <p className="font-medium">{error.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {error.count} x -{error.deduction} marks
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeError(error.indexes[error.indexes.length - 1])}
+                        aria-label={`Remove ${error.name}`}
+                      >
+                        <MinusCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="notes">{t('notes')}</Label>
+              <Label>{t("notes")}</Label>
               <Textarea
-                id="notes"
-                value={pageFormData.notes}
-                onChange={(e) => setPageFormData({ ...pageFormData, notes: e.target.value })}
-                placeholder="Optional notes..."
-                data-testid="page-eval-notes-input"
+                value={exam.notes}
+                onChange={(event) =>
+                  setExam((current) => ({ ...current, notes: event.target.value }))
+                }
+                placeholder="Optional notes"
               />
             </div>
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setPageDialogOpen(false)}>
-                {t('cancel')}
+              <Button type="button" variant="outline" onClick={() => setExamOpen(false)}>
+                {t("cancel")}
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" data-testid="save-page-eval-btn">
-                {t('save')}
+              <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+                <Save className="h-4 w-4" />
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Juz Evaluation Dialog */}
-      <Dialog open={juzDialogOpen} onOpenChange={setJuzDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('juzEvaluation')}</DialogTitle>
-            <DialogDescription>
-              Record a juz evaluation for a student
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleJuzSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="student">{t('studentName')} *</Label>
-              <Select
-                value={juzFormData.student_id}
-                onValueChange={(value) => setJuzFormData({ ...juzFormData, student_id: value })}
-              >
-                <SelectTrigger data-testid="juz-eval-student-select">
-                  <SelectValue placeholder="Select a student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((student) => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="juz_number">{t('juzNumber')} (1-30) *</Label>
-              <Select
-                value={juzFormData.juz_number}
-                onValueChange={(value) => setJuzFormData({ ...juzFormData, juz_number: value })}
-              >
-                <SelectTrigger data-testid="juz-eval-juz-select">
-                  <SelectValue placeholder="Select Juz" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 30 }, (_, i) => i + 1).map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      Juz {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="memorization_score">{t('memorization')} *</Label>
-                <Input
-                  id="memorization_score"
-                  type="number"
-                  value={juzFormData.memorization_score}
-                  onChange={(e) => setJuzFormData({ ...juzFormData, memorization_score: e.target.value })}
-                  required
-                  min="0"
-                  max="100"
-                  data-testid="juz-eval-mem-input"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mastery_score">{t('mastery')} *</Label>
-                <Input
-                  id="mastery_score"
-                  type="number"
-                  value={juzFormData.mastery_score}
-                  onChange={(e) => setJuzFormData({ ...juzFormData, mastery_score: e.target.value })}
-                  required
-                  min="0"
-                  max="100"
-                  data-testid="juz-eval-mastery-input"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">{t('notes')}</Label>
-              <Textarea
-                id="notes"
-                value={juzFormData.notes}
-                onChange={(e) => setJuzFormData({ ...juzFormData, notes: e.target.value })}
-                placeholder="Optional notes..."
-                data-testid="juz-eval-notes-input"
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setJuzDialogOpen(false)}>
-                {t('cancel')}
-              </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90" data-testid="save-juz-eval-btn">
-                {t('save')}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

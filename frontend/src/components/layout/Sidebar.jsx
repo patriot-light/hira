@@ -10,6 +10,7 @@ import {
   BookOpen,
   ClipboardCheck,
   Mic2,
+  AlertCircle,
   BarChart3,
   Settings,
   UserCog,
@@ -63,6 +64,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: Mic2,
       label: t("sessions"),
       roles: ["admin", "staff", "teacher", "student"],
+    },
+    {
+      to: "/error-types",
+      icon: AlertCircle,
+      label: "Error Types",
+      roles: ["admin", "staff"],
     },
     {
       to: "/reports",

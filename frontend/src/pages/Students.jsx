@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { studentsAPI, halaqasAPI, exportAPI } from "../services/api";
@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
@@ -74,13 +75,10 @@ const Students = () => {
     password: "",
     status: "active",
     halaqa_id: "",
+    halaqa_ids: [],
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [studentsRes, halaqasRes] = await Promise.all([
         studentsAPI.getAll(),
@@ -94,7 +92,11 @@ const Students = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,7 +104,8 @@ const Students = () => {
       const data = {
         ...formData,
         age: parseInt(formData.age) || 0,
-        halaqa_id: formData.halaqa_id || null,
+        halaqa_ids: formData.halaqa_ids || [],
+        halaqa_id: formData.halaqa_ids?.[0] || null,
         password: formData.password || null,
       };
 
@@ -144,6 +147,7 @@ const Students = () => {
       password: "",
       status: student.status || "active",
       halaqa_id: student.halaqa_id || "",
+      halaqa_ids: student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []),
     });
     setDialogOpen(true);
   };
@@ -159,6 +163,17 @@ const Students = () => {
       password: "",
       status: "active",
       halaqa_id: "",
+      halaqa_ids: [],
+    });
+  };
+
+  const toggleHalaqa = (halaqaId) => {
+    setFormData((current) => {
+      const currentIds = current.halaqa_ids || [];
+      const halaqa_ids = currentIds.includes(halaqaId)
+        ? currentIds.filter((id) => id !== halaqaId)
+        : [...currentIds, halaqaId];
+      return { ...current, halaqa_ids, halaqa_id: halaqa_ids[0] || "" };
     });
   };
 
@@ -201,9 +216,12 @@ const Students = () => {
       student.national_id?.includes(searchQuery),
   );
 
-  const getHalaqaName = (halaqaId) => {
-    const halaqa = halaqas.find((h) => h.id === halaqaId);
-    return halaqa?.name || "-";
+  const getHalaqaNames = (student) => {
+    const ids = student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []);
+    const names = ids
+      .map((id) => halaqas.find((halaqa) => halaqa.id === id)?.name)
+      .filter(Boolean);
+    return names.length ? names.join(", ") : "-";
   };
 
   if (loading) {
@@ -335,7 +353,7 @@ const Students = () => {
                         {student.phone || "-"}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {getHalaqaName(student.halaqa_id)}
+                        {getHalaqaNames(student)}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -509,24 +527,24 @@ const Students = () => {
               )}
               <div className="space-y-2">
                 <Label htmlFor="halaqa">{t("assignToHalaqa")}</Label>
-                <Select
-                  value={formData.halaqa_id}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, halaqa_id: value })
-                  }
-                >
-                  <SelectTrigger data-testid="student-halaqa-select">
-                    <SelectValue placeholder="Select a halaqa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="-">None</SelectItem>
-                    {halaqas.map((halaqa) => (
-                      <SelectItem key={halaqa.id} value={halaqa.id}>
-                        {halaqa.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid gap-2 rounded-md border p-3">
+                  {halaqas.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("noData")}</p>
+                  ) : (
+                    halaqas.map((halaqa) => (
+                      <label
+                        key={halaqa.id}
+                        className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted"
+                      >
+                        <Checkbox
+                          checked={(formData.halaqa_ids || []).includes(halaqa.id)}
+                          onCheckedChange={() => toggleHalaqa(halaqa.id)}
+                        />
+                        <span className="text-sm font-medium">{halaqa.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
             <DialogFooter>

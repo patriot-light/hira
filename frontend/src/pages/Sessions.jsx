@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { sessionsAPI, studentsAPI, teachersAPI } from "../services/api";
-import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import { errorTypesAPI, sessionsAPI, studentsAPI, teachersAPI } from "../services/api";
 import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import {
   Select,
   SelectContent,
@@ -30,50 +31,98 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { Plus, Mic2, Loader2, Trash2, FileText } from "lucide-react";
+import { FileText, Loader2, Mic2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ERROR_CATEGORIES } from "@/constants/constants";
+
+const resultLabel = {
+  excellent: "Excellent",
+  very_good: "Very Good",
+  good: "Good",
+  needs_review: "Needs Review",
+};
+
+const getScoreColor = (score) => {
+  if (score >= 90) return "bg-green-100 text-green-700";
+  if (score >= 80) return "bg-blue-100 text-blue-700";
+  if (score >= 70) return "bg-yellow-100 text-yellow-700";
+  return "bg-red-100 text-red-700";
+};
+
+const getResult = (score) => {
+  if (score >= 90) return "excellent";
+  if (score >= 80) return "very_good";
+  if (score >= 70) return "good";
+  return "needs_review";
+};
 
 const Sessions = () => {
   const { t } = useTranslation();
-  const { canEvaluate } = useAuth();
+  const navigate = useNavigate();
+  const { canEvaluate, isTeacher, user } = useAuth();
   const [errors, setErrors] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [errorTypes, setErrorTypes] = useState([]);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState(null);
   const [studentId, setStudentId] = useState("");
   const [teacherId, setTeacherId] = useState("");
   const [duration, setDuration] = useState("");
   const [fromPage, setFromPage] = useState("");
   const [toPage, setToPage] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const teacherLocked = isTeacher();
+  const loggedTeacher = useMemo(
+    () => teachers.find((teacher) => teacher.user_id === user?.id),
+    [teachers, user],
+  );
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const [s, st, tc] = await Promise.all([
+      const [sessionsRes, studentsRes, teachersRes, errorTypesRes] = await Promise.all([
         sessionsAPI.getAll(),
         studentsAPI.getAll(),
         teachersAPI.getAll(),
+        errorTypesAPI.getAll(),
       ]);
-      setSessions(s.data);
-      setStudents(st.data);
-      setTeachers(tc.data);
+      setSessions(sessionsRes.data);
+      setStudents(studentsRes.data);
+      setTeachers(teachersRes.data);
+      setErrorTypes(errorTypesRes.data);
     } catch (error) {
       toast.error(t("error"));
     } finally {
       setLoading(false);
     }
+  }, [t]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (teacherLocked && loggedTeacher) setTeacherId(loggedTeacher.id);
+  }, [teacherLocked, loggedTeacher]);
+
+  const totalPenalty = useMemo(
+    () => errors.reduce((sum, error) => sum + Number(error.penalty || 0), 0),
+    [errors],
+  );
+  const liveScore = Math.max(0, 100 - totalPenalty);
+  const liveResult = getResult(liveScore);
+
+  const resetForm = () => {
+    setStudentId("");
+    setTeacherId(teacherLocked && loggedTeacher ? loggedTeacher.id : "");
+    setDuration("");
+    setFromPage("");
+    setToPage("");
+    setErrors([]);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     try {
       await sessionsAPI.create({
         student_id: studentId,
@@ -81,10 +130,10 @@ const Sessions = () => {
         duration_minutes: parseInt(duration),
         from_page: parseInt(fromPage),
         to_page: parseInt(toPage),
-        errors: errors.map((e) => ({
-          ...e,
-          page_number: Number(e.page_number),
-          penalty: Number(e.penalty),
+        errors: errors.map((error) => ({
+          ...error,
+          page_number: Number(error.page_number),
+          penalty: Number(error.penalty),
         })),
       });
       toast.success(t("sessionCreated"));
@@ -106,65 +155,50 @@ const Sessions = () => {
     }
   };
 
-  const resetForm = () => {
-    setStudentId("");
-    setTeacherId("");
-    setDuration("");
-    setFromPage("");
-    setToPage("");
-    setErrors([]);
-  };
-
-  const addError = () => {
-    setErrors([
-      ...errors,
+  const addError = (errorType) => {
+    setErrors((current) => [
+      ...current,
       {
-        category: "",
-        description: "",
-        page_number: "",
+        error_type_id: errorType.id,
+        category: errorType.name,
+        description: errorType.description || errorType.name,
+        name: errorType.name,
+        page_number: fromPage || "",
         word: "",
-        penalty: 1,
+        penalty: Number(errorType.deduction),
       },
     ]);
   };
 
   const updateError = (index, field, value) => {
-    const updated = [...errors];
-    updated[index][field] = value;
-    setErrors(updated);
+    setErrors((current) =>
+      current.map((error, errorIndex) =>
+        errorIndex === index ? { ...error, [field]: value } : error,
+      ),
+    );
   };
 
   const removeError = (index) => {
-    setErrors(errors.filter((_, i) => i !== index));
+    setErrors((current) => current.filter((_, errorIndex) => errorIndex !== index));
   };
 
-  const getStudentName = (id) => {
-    const s = students.find((x) => x.id === id);
-    return s ? s.full_name : "-";
-  };
+  const getStudentName = (id) =>
+    students.find((student) => student.id === id)?.full_name || "-";
 
-  const getTeacherName = (id) => {
-    const tc = teachers.find((x) => x.id === id);
-    return tc ? tc.full_name : "-";
-  };
+  const getTeacherName = (id) =>
+    teachers.find((teacher) => teacher.id === id)?.full_name || "-";
 
-  const getResultColor = (result) => {
-    if (result === "excellent") return "bg-green-100 text-green-700";
-    if (result === "very_good") return "bg-blue-100 text-blue-700";
-    if (result === "good") return "bg-yellow-100 text-yellow-700";
-    return "bg-red-100 text-red-700";
-  };
-
-  if (loading)
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
 
   return (
     <div className="space-y-6" data-testid="sessions-page">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
             <Mic2 className="h-8 w-8 text-primary" />
@@ -190,15 +224,16 @@ const Sessions = () => {
       </div>
 
       <Card>
+        <CardHeader>
+          <CardTitle>Session Results</CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("studentName")}</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    {t("teacherName")}
-                  </TableHead>
+                  <TableHead className="hidden md:table-cell">{t("teacherName")}</TableHead>
                   <TableHead>{t("totalPages")}</TableHead>
                   <TableHead>{t("totalErrors")}</TableHead>
                   <TableHead>{t("finalScore")}</TableHead>
@@ -209,57 +244,40 @@ const Sessions = () => {
               <TableBody>
                 {sessions.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center py-8 text-muted-foreground"
-                    >
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                       {t("noData")}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sessions.map((s) => (
-                    <TableRow
-                      key={s.id}
-                      data-testid={`session-row-${s.id} text-center`}
-                    >
+                  sessions.map((session) => (
+                    <TableRow key={session.id} data-testid={`session-row-${session.id}`}>
                       <TableCell className="font-medium">
-                        {getStudentName(s.student_id)}
+                        {getStudentName(session.student_id)}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {getTeacherName(s.teacher_id)}
+                        {getTeacherName(session.teacher_id)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{s.total_pages}</Badge>
+                        <Badge variant="outline">{session.total_pages}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={
-                            s.total_errors > 0 ? "destructive" : "outline"
-                          }
-                        >
-                          {s.total_errors}
+                        <Badge variant={session.total_errors ? "destructive" : "outline"}>
+                          {session.total_errors}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <span className="font-bold text-primary">
-                          {s.final_score?.toFixed(1)}%
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getResultColor(s.result)}>
-                          {t(s.result)}
+                        <Badge className={getScoreColor(session.final_score)}>
+                          {session.final_score?.toFixed(1)}%
                         </Badge>
                       </TableCell>
+                      <TableCell>{resultLabel[session.result] || t(session.result)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => {
-                              setSelectedSession(s);
-                              setDetailsOpen(true);
-                            }}
-                            data-testid={`view-session-${s.id}`}
+                            onClick={() => navigate(`/sessions/${session.id}`)}
+                            data-testid={`view-session-${session.id}`}
                           >
                             <FileText className="h-4 w-4" />
                           </Button>
@@ -267,7 +285,7 @@ const Sessions = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleDelete(s.id)}
+                              onClick={() => handleDelete(session.id)}
                               className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -285,49 +303,53 @@ const Sessions = () => {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>{t("addSession")}</DialogTitle>
-            <DialogDescription>Record a new Tasmee' session</DialogDescription>
+            <DialogDescription>Record a new Tasmee' session.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t("studentName")} *</Label>
-              <Select value={studentId} onValueChange={setStudentId}>
-                <SelectTrigger data-testid="session-student-select">
-                  <SelectValue placeholder="Select student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((st) => (
-                    <SelectItem key={st.id} value={st.id}>
-                      {st.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t("teacherName")} *</Label>
-              <Select value={teacherId} onValueChange={setTeacherId}>
-                <SelectTrigger data-testid="session-teacher-select">
-                  <SelectValue placeholder="Select teacher" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teachers.map((tc) => (
-                    <SelectItem key={tc.id} value={tc.id}>
-                      {tc.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t("studentName")} *</Label>
+                <Select value={studentId} onValueChange={setStudentId}>
+                  <SelectTrigger data-testid="session-student-select">
+                    <SelectValue placeholder="Select student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t("teacherName")} *</Label>
+                <Select
+                  value={teacherId}
+                  disabled={teacherLocked}
+                  onValueChange={setTeacherId}
+                >
+                  <SelectTrigger data-testid="session-teacher-select">
+                    <SelectValue placeholder="Select teacher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id}>
+                        {teacher.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>{t("duration")} *</Label>
                 <Input
                   type="number"
                   value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
+                  onChange={(event) => setDuration(event.target.value)}
                   required
                   min="1"
                   data-testid="session-duration-input"
@@ -338,7 +360,7 @@ const Sessions = () => {
                 <Input
                   type="number"
                   value={fromPage}
-                  onChange={(e) => setFromPage(e.target.value)}
+                  onChange={(event) => setFromPage(event.target.value)}
                   required
                   min="1"
                   max="604"
@@ -350,7 +372,7 @@ const Sessions = () => {
                 <Input
                   type="number"
                   value={toPage}
-                  onChange={(e) => setToPage(e.target.value)}
+                  onChange={(event) => setToPage(event.target.value)}
                   required
                   min="1"
                   max="604"
@@ -358,130 +380,119 @@ const Sessions = () => {
                 />
               </div>
             </div>
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
+
+            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+              <div className="space-y-3">
                 <Label>Recitation Errors</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addError}
-                >
-                  + Add Error
-                </Button>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {errorTypes.map((errorType) => (
+                    <Button
+                      key={errorType.id}
+                      type="button"
+                      variant="outline"
+                      className="h-auto min-h-16 justify-between gap-3 whitespace-normal p-4 text-left"
+                      onClick={() => addError(errorType)}
+                    >
+                      <span>
+                        <span className="block font-semibold">{errorType.name}</span>
+                        <span className="block text-sm text-muted-foreground">
+                          -{errorType.deduction} marks
+                        </span>
+                      </span>
+                      <Plus className="h-5 w-5 shrink-0" />
+                    </Button>
+                  ))}
+                </div>
               </div>
 
-              {errors.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No errors recorded
-                </p>
-              )}
-
-              {errors.map((err, index) => (
-                <div
-                  key={index}
-                  className="rounded-lg border p-3 space-y-3 bg-muted/30"
-                >
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label>Category *</Label>
-                      <Select
-                        value={err.category}
-                        onValueChange={(v) => updateError(index, "category", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ERROR_CATEGORIES.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label>Page *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="604"
-                        value={err.page_number}
-                        onChange={(e) =>
-                          updateError(
-                            index,
-                            "page_number",
-                            Number(e.target.value),
-                          )
-                        }
-                      />
-                    </div>
+              <div className="rounded-md border bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
+                <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
+                <Badge className={`${getScoreColor(liveScore)} mt-3`}>
+                  {resultLabel[liveResult]}
+                </Badge>
+                <div className="mt-5 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t("totalErrors")}</span>
+                    <strong>{errors.length}</strong>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label>Word</Label>
-                      <Input
-                        value={err.word}
-                        onChange={(e) =>
-                          updateError(index, "word", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label>Penalty</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        value={err.penalty}
-                        onChange={(e) =>
-                          updateError(index, "penalty", Number(e.target.value))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label>Description</Label>
-                    <Input
-                      value={err.description}
-                      onChange={(e) =>
-                        updateError(index, "description", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeError(index)}
-                    >
-                      Remove
-                    </Button>
+                  <div className="flex justify-between text-sm">
+                    <span>Total deduction</span>
+                    <strong>{totalPenalty}</strong>
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Recorded Errors</Label>
+              {errors.length === 0 ? (
+                <div className="rounded-md border border-dashed p-5 text-center text-muted-foreground">
+                  No errors recorded
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {errors.map((error, index) => (
+                    <div key={index} className="rounded-md border p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium">
+                            {error.name || error.category}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Page {error.page_number || "-"} | -{error.penalty} mark
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeError(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-3">
+                        <div className="space-y-1">
+                          <Label>Page</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="604"
+                            value={error.page_number}
+                            onChange={(event) => updateError(index, "page_number", event.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>{t("penalty")}</Label>
+                          <Input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            value={error.penalty}
+                            onChange={(event) => updateError(index, "penalty", event.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>{t("word")}</Label>
+                          <Input
+                            value={error.word}
+                            onChange={(event) => updateError(index, "word", event.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 {t("cancel")}
               </Button>
-              <Button
-                type="submit"
-                className="bg-primary hover:bg-primary/90"
-                data-testid="save-session-btn"
-              >
+              <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+                <Save className="h-4 w-4" />
                 {t("save")}
               </Button>
             </DialogFooter>
@@ -489,72 +500,6 @@ const Sessions = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t("sessionDetails")}</DialogTitle>
-          </DialogHeader>
-          {selectedSession && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    {t("studentName")}
-                  </p>
-                  <p className="font-medium">
-                    {getStudentName(selectedSession.student_id)}
-                  </p>
-                </div>
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    {t("teacherName")}
-                  </p>
-                  <p className="font-medium">
-                    {getTeacherName(selectedSession.teacher_id)}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("duration")}
-                  </p>
-                  <p className="font-bold">
-                    {selectedSession.duration_minutes} min
-                  </p>
-                </div>
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("totalPages")}
-                  </p>
-                  <p className="font-bold">{selectedSession.total_pages}</p>
-                </div>
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {t("totalErrors")}
-                  </p>
-                  <p className="font-bold">{selectedSession.total_errors}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("finalScore")}
-                  </p>
-                  <p className="text-3xl font-bold text-primary">
-                    {selectedSession.final_score?.toFixed(1)}%
-                  </p>
-                </div>
-                <Badge
-                  className={`${getResultColor(selectedSession.result)} text-lg px-4 py-2`}
-                >
-                  {t(selectedSession.result)}
-                </Badge>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

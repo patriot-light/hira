@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { teachersAPI } from '../services/api';
@@ -58,11 +58,7 @@ const Teachers = () => {
     password: ''
   });
 
-  useEffect(() => {
-    fetchTeachers();
-  }, []);
-
-  const fetchTeachers = async () => {
+  const fetchTeachers = useCallback(async () => {
     try {
       const response = await teachersAPI.getAll();
       setTeachers(response.data);
@@ -72,7 +68,11 @@ const Teachers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

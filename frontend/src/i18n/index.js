@@ -1,5 +1,5 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 const resources = {
   en: {
@@ -7,7 +7,7 @@ const resources = {
       // App
       appName: "Hira Institute",
       appNameAr: "معهد حراء",
-      
+
       // Navigation
       dashboard: "Dashboard",
       students: "Students",
@@ -19,7 +19,7 @@ const resources = {
       settings: "Settings",
       users: "Users",
       staff: "Staff",
-      
+
       // Auth
       login: "Login",
       logout: "Logout",
@@ -29,13 +29,13 @@ const resources = {
       loginSubtitle: "Sign in to continue to Hira Institute",
       rememberMe: "Remember me",
       forgotPassword: "Forgot password?",
-      
+
       // Roles
       admin: "Admin",
       teacher: "Teacher",
       student: "Student",
       staffRole: "Staff",
-      
+
       // Common
       save: "Save",
       cancel: "Cancel",
@@ -57,7 +57,7 @@ const resources = {
       confirm: "Confirm",
       success: "Success",
       error: "Error",
-      
+
       // Students
       studentName: "Student Name",
       fullName: "Full Name",
@@ -68,14 +68,14 @@ const resources = {
       editStudent: "Edit Student",
       studentDetails: "Student Details",
       assignToHalaqa: "Assign to Halaqa",
-      
+
       // Teachers
       teacherName: "Teacher Name",
       qualification: "Qualification",
       experienceYears: "Years of Experience",
       addTeacher: "Add Teacher",
       editTeacher: "Edit Teacher",
-      
+
       // Halaqas
       halaqaName: "Halaqa Name",
       level: "Level",
@@ -88,7 +88,7 @@ const resources = {
       addHalaqa: "Add Halaqa",
       editHalaqa: "Edit Halaqa",
       manageStudents: "Manage Students",
-      
+
       // Schedule
       day: "Day",
       startTime: "Start Time",
@@ -100,7 +100,7 @@ const resources = {
       thursday: "Thursday",
       friday: "Friday",
       saturday: "Saturday",
-      
+
       // Evaluations
       pageEvaluation: "Page Evaluation",
       juzEvaluation: "Juz Evaluation",
@@ -112,7 +112,7 @@ const resources = {
       notes: "Notes",
       addEvaluation: "Add Evaluation",
       evaluationHistory: "Evaluation History",
-      
+
       // Sessions
       recitationSession: "Recitation Session",
       tasmee: "Tasmee'",
@@ -126,7 +126,7 @@ const resources = {
       result: "Result",
       addSession: "Add Session",
       sessionDetails: "Session Details",
-      
+
       // Errors
       errorTracking: "Error Tracking",
       errorCategory: "Error Category",
@@ -141,13 +141,13 @@ const resources = {
       penalty: "Penalty",
       word: "Word",
       addError: "Add Error",
-      
+
       // Results
       excellent: "Excellent",
       veryGood: "Very Good",
       good: "Good",
       needsReview: "Needs Review",
-      
+
       // Reports
       studentReport: "Student Report",
       halaqaReport: "Halaqa Report",
@@ -158,7 +158,7 @@ const resources = {
       memorization_progress: "Memorization Progress",
       averageScore: "Average Score",
       totalSessions: "Total Sessions",
-      
+
       // Dashboard
       welcomeBack: "Welcome Back",
       quickStats: "Quick Stats",
@@ -166,7 +166,7 @@ const resources = {
       upcomingClasses: "Upcoming Classes",
       myProgress: "My Progress",
       todaySchedule: "Today's Schedule",
-      
+
       // Messages
       studentCreated: "Student created successfully",
       studentUpdated: "Student updated successfully",
@@ -181,14 +181,14 @@ const resources = {
       sessionCreated: "Session recorded successfully",
       loginSuccess: "Welcome to Hira Institute!",
       loginError: "Invalid email or password",
-    }
+    },
   },
   ar: {
     translation: {
       // App
       appName: "معهد حراء",
       appNameAr: "معهد حراء",
-      
+
       // Navigation
       dashboard: "لوحة التحكم",
       students: "الطلاب",
@@ -200,7 +200,7 @@ const resources = {
       settings: "الإعدادات",
       users: "المستخدمون",
       staff: "الموظفون",
-      
+
       // Auth
       login: "تسجيل الدخول",
       logout: "تسجيل الخروج",
@@ -210,13 +210,13 @@ const resources = {
       loginSubtitle: "سجل دخولك للمتابعة إلى معهد حراء",
       rememberMe: "تذكرني",
       forgotPassword: "نسيت كلمة المرور؟",
-      
+
       // Roles
       admin: "مدير",
       teacher: "معلم",
       student: "طالب",
       staffRole: "موظف",
-      
+
       // Common
       save: "حفظ",
       cancel: "إلغاء",
@@ -238,7 +238,7 @@ const resources = {
       confirm: "تأكيد",
       success: "نجاح",
       error: "خطأ",
-      
+
       // Students
       studentName: "اسم الطالب",
       fullName: "الاسم الكامل",
@@ -249,14 +249,14 @@ const resources = {
       editStudent: "تعديل طالب",
       studentDetails: "تفاصيل الطالب",
       assignToHalaqa: "تعيين في حلقة",
-      
+
       // Teachers
       teacherName: "اسم المعلم",
       qualification: "المؤهل",
       experienceYears: "سنوات الخبرة",
       addTeacher: "إضافة معلم",
       editTeacher: "تعديل معلم",
-      
+
       // Halaqas
       halaqaName: "اسم الحلقة",
       level: "المستوى",
@@ -269,7 +269,7 @@ const resources = {
       addHalaqa: "إضافة حلقة",
       editHalaqa: "تعديل حلقة",
       manageStudents: "إدارة الطلاب",
-      
+
       // Schedule
       day: "اليوم",
       startTime: "وقت البدء",
@@ -281,7 +281,7 @@ const resources = {
       thursday: "الخميس",
       friday: "الجمعة",
       saturday: "السبت",
-      
+
       // Evaluations
       pageEvaluation: "تقييم الصفحة",
       juzEvaluation: "تقييم الجزء",
@@ -293,7 +293,7 @@ const resources = {
       notes: "ملاحظات",
       addEvaluation: "إضافة تقييم",
       evaluationHistory: "سجل التقييمات",
-      
+
       // Sessions
       recitationSession: "جلسة التسميع",
       tasmee: "التسميع",
@@ -307,7 +307,7 @@ const resources = {
       result: "النتيجة",
       addSession: "إضافة جلسة",
       sessionDetails: "تفاصيل الجلسة",
-      
+
       // Errors
       errorTracking: "تتبع الأخطاء",
       errorCategory: "نوع الخطأ",
@@ -322,13 +322,13 @@ const resources = {
       penalty: "الخصم",
       word: "الكلمة",
       addError: "إضافة خطأ",
-      
+
       // Results
       excellent: "ممتاز",
       veryGood: "جيد جداً",
       good: "جيد",
       needsReview: "يحتاج مراجعة",
-      
+
       // Reports
       studentReport: "تقرير الطالب",
       halaqaReport: "تقرير الحلقة",
@@ -339,7 +339,7 @@ const resources = {
       memorization_progress: "تقدم الحفظ",
       averageScore: "متوسط الدرجات",
       totalSessions: "إجمالي الجلسات",
-      
+
       // Dashboard
       welcomeBack: "مرحباً بعودتك",
       quickStats: "إحصائيات سريعة",
@@ -347,7 +347,7 @@ const resources = {
       upcomingClasses: "الحلقات القادمة",
       myProgress: "تقدمي",
       todaySchedule: "جدول اليوم",
-      
+
       // Messages
       studentCreated: "تم إنشاء الطالب بنجاح",
       studentUpdated: "تم تحديث الطالب بنجاح",
@@ -362,19 +362,17 @@ const resources = {
       sessionCreated: "تم تسجيل الجلسة بنجاح",
       loginSuccess: "مرحباً بك في معهد حراء!",
       loginError: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-    }
-  }
+    },
+  },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: localStorage.getItem('language') || 'en',
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false
-    }
-  });
+i18n.use(initReactI18next).init({
+  resources,
+  lng: localStorage.getItem("language") || "ar",
+  fallbackLng: "ar",
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export default i18n;

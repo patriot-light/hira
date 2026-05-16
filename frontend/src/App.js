@@ -1,23 +1,26 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
-import './i18n';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import "./i18n";
 
 // Layout
-import MainLayout from './components/layout/MainLayout';
+import MainLayout from "./components/layout/MainLayout";
 
 // Pages
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Students from './pages/Students';
-import Teachers from './pages/Teachers';
-import Halaqas from './pages/Halaqas';
-import Evaluations from './pages/Evaluations';
-import Sessions from './pages/Sessions';
-import Reports from './pages/Reports';
-import Users from './pages/Users';
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Students from "./pages/Students";
+import Teachers from "./pages/Teachers";
+import Halaqas from "./pages/Halaqas";
+import Evaluations from "./pages/Evaluations";
+import Sessions from "./pages/Sessions";
+import SessionDetails from "./pages/SessionDetails";
+import Reports from "./pages/Reports";
+import Users from "./pages/Users";
+import ErrorTypes from "./pages/ErrorTypes";
+import EvaluationDetails from "./pages/EvaluationDetails";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -65,60 +68,69 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <Login />
           </PublicRoute>
-        } 
+        }
       />
 
       {/* Protected Routes */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
           <ProtectedRoute>
             <MainLayout />
           </ProtectedRoute>
-        }
-      >
+        }>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route 
-          path="students" 
+        <Route
+          path="students"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'teacher']}>
+            <ProtectedRoute allowedRoles={["admin", "staff", "teacher"]}>
               <Students />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="teachers" 
+        <Route
+          path="teachers"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'staff']}>
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
               <Teachers />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route path="halaqas" element={<Halaqas />} />
         <Route path="evaluations" element={<Evaluations />} />
+        <Route path="evaluations/:id" element={<EvaluationDetails />} />
         <Route path="sessions" element={<Sessions />} />
-        <Route 
-          path="reports" 
+        <Route path="sessions/:id" element={<SessionDetails />} />
+        <Route
+          path="error-types"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'teacher']}>
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <ErrorTypes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="reports"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff", "teacher"]}>
               <Reports />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="users" 
+        <Route
+          path="users"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <Users />
             </ProtectedRoute>
-          } 
+          }
         />
       </Route>
 
@@ -134,13 +146,13 @@ function App() {
       <AuthProvider>
         <LanguageProvider>
           <AppRoutes />
-          <Toaster 
-            position="top-center" 
-            richColors 
+          <Toaster
+            position="top-center"
+            richColors
             closeButton
             toastOptions={{
               style: {
-                borderRadius: '12px',
+                borderRadius: "12px",
               },
             }}
           />

@@ -102,6 +102,25 @@ export const juzEvaluationsAPI = {
   delete: (id) => api.delete(`/evaluations/juz/${id}`),
 };
 
+// Exam Evaluations API
+export const examEvaluationsAPI = {
+  getAll: (studentId) =>
+    api.get("/evaluations/exams", { params: { student_id: studentId } }),
+  getOne: (id) => api.get(`/evaluations/exams/${id}`),
+  create: (data) => api.post("/evaluations/exams", data),
+  delete: (id) => api.delete(`/evaluations/exams/${id}`),
+};
+
+// Global Error Types API
+export const errorTypesAPI = {
+  getAll: () => api.get("/error-types"),
+  create: (data) => api.post("/error-types", data),
+  update: (id, data) => api.put(`/error-types/${id}`, data),
+  delete: (id) => api.delete(`/error-types/${id}`),
+};
+
+export const evaluationErrorTypesAPI = errorTypesAPI;
+
 // Sessions API
 export const sessionsAPI = {
   getAll: (studentId) =>
