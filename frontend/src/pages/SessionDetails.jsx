@@ -59,7 +59,7 @@ const SessionDetails = () => {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     fetchData();
