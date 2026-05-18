@@ -115,8 +115,8 @@ const Dashboard = () => {
           </h1>
           <p className="text-muted-foreground mt-1">
             {isStudent() 
-              ? 'Track your Quran memorization progress' 
-              : 'Here\'s an overview of your institute'}
+              ? t('trackMemorizationProgress')
+              : t('instituteOverview')}
           </p>
         </div>
         <Badge variant="outline" className="w-fit capitalize">
@@ -302,7 +302,7 @@ const Dashboard = () => {
                     <div>
                       <p className="font-medium">{halaqa.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {halaqa.schedule?.length || 0} {t('day')}s
+                        {halaqa.schedule?.length || 0} {t('days')}
                       </p>
                     </div>
                   </div>

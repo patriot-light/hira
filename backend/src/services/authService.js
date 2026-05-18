@@ -22,7 +22,7 @@ async function createProfileForUser(user, createdAt) {
       created_at: createdAt
     });
   }
-  if (user.role === UserRole.TEACHER) {
+  if (user.role === UserRole.TEACHER || user.role === UserRole.EXAM_TEACHER) {
     await getCollection("teachers").insertOne({
       id: `${user.id}_teacher`,
       full_name: user.full_name,

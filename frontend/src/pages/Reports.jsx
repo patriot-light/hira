@@ -176,7 +176,7 @@ const Reports = () => {
           {t('reports')}
         </h1>
         <p className="text-muted-foreground mt-1">
-          View detailed analytics and reports
+          {t('reportsDescription')}
         </p>
       </div>
 
@@ -212,7 +212,7 @@ const Reports = () => {
             <CardContent>
               <Select value={selectedStudent} onValueChange={handleStudentSelect}>
                 <SelectTrigger className="max-w-md" data-testid="student-report-select">
-                  <SelectValue placeholder="Select a student" />
+                  <SelectValue placeholder={t('selectStudent')} />
                 </SelectTrigger>
                 <SelectContent>
                   {students.map((student) => (
@@ -279,7 +279,7 @@ const Reports = () => {
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{studentReport.completed_juz?.length || 0}/30</p>
-                        <p className="text-sm text-muted-foreground">Juz Completed</p>
+                        <p className="text-sm text-muted-foreground">{t('juzCompleted')}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -294,8 +294,12 @@ const Reports = () => {
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>{studentReport.memorization_progress}% Complete</span>
-                      <span>{studentReport.completed_juz?.length || 0} of 30 Juz</span>
+                      <span>
+                        {studentReport.memorization_progress}% {t('complete')}
+                      </span>
+                      <span>
+                        {studentReport.completed_juz?.length || 0} {t('of')} 30 {t('juz')}
+                      </span>
                     </div>
                     <Progress value={studentReport.memorization_progress} className="h-3" />
                   </div>
@@ -349,7 +353,7 @@ const Reports = () => {
             <CardContent>
               <Select value={selectedHalaqa} onValueChange={handleHalaqaSelect}>
                 <SelectTrigger className="max-w-md" data-testid="halaqa-report-select">
-                  <SelectValue placeholder="Select a halaqa" />
+                  <SelectValue placeholder={t('selectHalaqa')} />
                 </SelectTrigger>
                 <SelectContent>
                   {halaqas.map((halaqa) => (
@@ -381,13 +385,13 @@ const Reports = () => {
                 <Card className="card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-accent">{halaqaReport.average_session_score}%</p>
-                    <p className="text-sm text-muted-foreground">Avg Session Score</p>
+                    <p className="text-sm text-muted-foreground">{t('avgSessionScore')}</p>
                   </CardContent>
                 </Card>
                 <Card className="card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-blue-600">{halaqaReport.average_page_score}%</p>
-                    <p className="text-sm text-muted-foreground">Avg Page Score</p>
+                    <p className="text-sm text-muted-foreground">{t('avgPageScore')}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -396,7 +400,7 @@ const Reports = () => {
               {halaqaReport.student_performance && halaqaReport.student_performance.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Student Performance Comparison</CardTitle>
+                    <CardTitle>{t('studentPerformanceComparison')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-64">
@@ -426,7 +430,7 @@ const Reports = () => {
             <CardContent>
               <Select value={selectedTeacher} onValueChange={handleTeacherSelect}>
                 <SelectTrigger className="max-w-md" data-testid="teacher-report-select">
-                  <SelectValue placeholder="Select a teacher" />
+                  <SelectValue placeholder={t('selectTeacher')} />
                 </SelectTrigger>
                 <SelectContent>
                   {teachers.map((teacher) => (
@@ -466,7 +470,7 @@ const Reports = () => {
                 <CardContent className="p-6 text-center">
                   <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <p className="text-3xl font-bold">{teacherReport.average_student_score}%</p>
-                  <p className="text-sm text-muted-foreground">Avg Student Score</p>
+                  <p className="text-sm text-muted-foreground">{t('avgStudentScore')}</p>
                 </CardContent>
               </Card>
             </div>

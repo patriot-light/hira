@@ -43,7 +43,7 @@ router.get("/exams", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/exams", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
+router.post("/exams", requireRoles("admin", "staff", "teacher", "exam_teacher"), async (req, res, next) => {
   try {
     res.json(await service.createExam(req.body, req.user));
   } catch (error) {
@@ -59,7 +59,7 @@ router.get("/exams/:id", authenticate, async (req, res, next) => {
   }
 });
 
-router.delete("/exams/:id", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
+router.delete("/exams/:id", requireRoles("admin", "staff", "teacher", "exam_teacher"), async (req, res, next) => {
   try {
     await service.remove("exam_evaluations", req.params.id);
     res.json({ message: "Evaluation deleted successfully" });

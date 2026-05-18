@@ -131,7 +131,9 @@ test("dynamic exam evaluations calculate final score", async () => {
       {
         error_type_id: customError.body.id,
         name: customError.body.name,
-        deduction: customError.body.deduction
+        deduction: customError.body.deduction,
+        page_number: 42,
+        word: "الرحمن"
       },
       {
         error_type_id: customError.body.id,
@@ -155,6 +157,70 @@ test("dynamic exam evaluations calculate final score", async () => {
   assert.equal(singleExam.status, 200);
   assert.equal(singleExam.body.id, exam.body.id);
   assert.equal(singleExam.body.errors.length, 2);
+  assert.equal(singleExam.body.errors[0].page_number, 42);
+  assert.equal(singleExam.body.errors[0].word, "الرحمن");
+});
+
+test("exam teachers only see raised students and use the raised range", async () => {
+  const student = await auth(api.post("/api/students")).send({
+    full_name: "Raised Exam Student",
+    age: 14,
+    phone: "+966555000111",
+    status: "active"
+  });
+  assert.equal(student.status, 200);
+
+  const hiddenStudent = await auth(api.post("/api/students")).send({
+    full_name: "Hidden Exam Student",
+    age: 15,
+    status: "active"
+  });
+  assert.equal(hiddenStudent.status, 200);
+
+  const examTeacherUser = await api.post("/api/auth/register").send({
+    email: "exam-teacher@hira.edu",
+    password: "exam123",
+    full_name: "Exam Teacher",
+    role: "exam_teacher"
+  });
+  assert.equal(examTeacherUser.status, 200);
+  const examTeacherToken = examTeacherUser.body.access_token;
+
+  const roleUpdate = await auth(api.put(`/api/users/${examTeacherUser.body.user.id}/role`)).send({ role: "exam_teacher" });
+  assert.equal(roleUpdate.status, 200);
+
+  const beforeRaise = await api.get("/api/students").set("Authorization", `Bearer ${examTeacherToken}`);
+  assert.equal(beforeRaise.status, 200);
+  assert.equal(beforeRaise.body.length, 0);
+
+  const raise = await auth(api.post(`/api/students/${student.body.id}/exam-request`)).send({ from_juz: 7, to_juz: 9 });
+  assert.equal(raise.status, 200);
+
+  const visibleStudents = await api.get("/api/students").set("Authorization", `Bearer ${examTeacherToken}`);
+  assert.equal(visibleStudents.status, 200);
+  assert.equal(visibleStudents.body.length, 1);
+  assert.equal(visibleStudents.body[0].id, student.body.id);
+  assert.equal(visibleStudents.body[0].exam_request.from_juz, 7);
+
+  const forbiddenStudent = await api.get(`/api/students/${hiddenStudent.body.id}`).set("Authorization", `Bearer ${examTeacherToken}`);
+  assert.equal(forbiddenStudent.status, 403);
+
+  const exam = await api
+    .post("/api/evaluations/exams")
+    .set("Authorization", `Bearer ${examTeacherToken}`)
+    .send({
+      student_id: student.body.id,
+      from_juz: 1,
+      to_juz: 1,
+      errors: []
+    });
+  assert.equal(exam.status, 200);
+  assert.equal(exam.body.from_juz, 7);
+  assert.equal(exam.body.to_juz, 9);
+
+  const afterExam = await api.get("/api/students").set("Authorization", `Bearer ${examTeacherToken}`);
+  assert.equal(afterExam.status, 200);
+  assert.equal(afterExam.body.length, 0);
 });
 
 test("teacher users are locked to their own teacher profile for sessions", async () => {

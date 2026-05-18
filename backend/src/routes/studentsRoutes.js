@@ -1,6 +1,5 @@
 const router = require("express").Router();
 const { authenticate, requireRoles } = require("../middleware/auth");
-const { getCollection } = require("../config/database");
 const service = require("../services/profileService");
 
 router.get("/", authenticate, async (req, res, next) => {
@@ -21,9 +20,15 @@ router.post("/", requireRoles("admin", "staff"), async (req, res, next) => {
 
 router.get("/:id", authenticate, async (req, res, next) => {
   try {
-    const student = await getCollection("students").findOne({ id: req.params.id }, { projection: { _id: 0 } });
-    if (!student) return res.status(404).json({ detail: "Student not found" });
-    res.json(student);
+    res.json(await service.getStudentProfile(req.params.id, req.user));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/:id/exam-request", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
+  try {
+    res.json(await service.raiseStudentForExam(req.params.id, req.body, req.user));
   } catch (error) {
     next(error);
   }

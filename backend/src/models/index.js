@@ -1,6 +1,6 @@
 const { v4: uuid } = require("uuid");
 
-const UserRole = Object.freeze({ ADMIN: "admin", STAFF: "staff", TEACHER: "teacher", STUDENT: "student" });
+const UserRole = Object.freeze({ ADMIN: "admin", STAFF: "staff", TEACHER: "teacher", EXAM_TEACHER: "exam_teacher", STUDENT: "student" });
 const HalaqaLevel = Object.freeze({ BEGINNER: "beginner", INTERMEDIATE: "intermediate", ADVANCED: "advanced" });
 const StudentStatus = Object.freeze({ ACTIVE: "active", INACTIVE: "inactive" });
 const EvaluationResult = Object.freeze({ EXCELLENT: "excellent", VERY_GOOD: "very_good", GOOD: "good", NEEDS_REVIEW: "needs_review" });
@@ -30,6 +30,11 @@ function numberRange(value, field, min, max) {
 
 function createUser(data) {
   required(data, ["email", "full_name"]);
+  if (data.role && !Object.values(UserRole).includes(data.role)) {
+    const error = new Error("Invalid role");
+    error.status = 400;
+    throw error;
+  }
   return {
     id: uuid(),
     email: data.email,
@@ -158,6 +163,8 @@ function createExamEvaluation(data, evaluatorId) {
     error_type_id: error.error_type_id || null,
     name: error.name,
     deduction: Number(error.deduction || 0),
+    page_number: error.page_number ? Number(error.page_number) : null,
+    word: error.word || "",
     note: error.note || null
   }));
   const total_deduction = errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0);
@@ -176,6 +183,30 @@ function createExamEvaluation(data, evaluatorId) {
     result: resultFromScore(final_score),
     notes: data.notes || null,
     date: now()
+  };
+}
+
+function createExamRequest(data, raisedBy) {
+  required(data, ["student_id", "from_juz", "to_juz"]);
+  numberRange(Number(data.from_juz), "from_juz", 1, 30);
+  numberRange(Number(data.to_juz), "to_juz", 1, 30);
+  const from_juz = Number(data.from_juz);
+  const to_juz = Number(data.to_juz);
+  if (from_juz > to_juz) {
+    const error = new Error("from_juz must be less than or equal to to_juz");
+    error.status = 400;
+    throw error;
+  }
+  return {
+    id: uuid(),
+    student_id: data.student_id,
+    from_juz,
+    to_juz,
+    status: "pending",
+    raised_by: raisedBy || null,
+    notes: data.notes || null,
+    created_at: now(),
+    completed_at: null
   };
 }
 
@@ -210,6 +241,7 @@ module.exports = {
   createHalaqa,
   createEvaluationErrorType,
   createExamEvaluation,
+  createExamRequest,
   createJuzEvaluation,
   createPageEvaluation,
   createSession,

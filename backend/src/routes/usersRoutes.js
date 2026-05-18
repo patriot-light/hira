@@ -12,7 +12,7 @@ router.get("/", requireRoles("admin"), async (req, res, next) => {
 
 router.put("/:userId/role", requireRoles("admin"), async (req, res, next) => {
   try {
-    await users.updateUserRole(req.params.userId, req.query.role);
+    await users.updateUserRole(req.params.userId, req.body?.role || req.query.role);
     res.json({ message: "Role updated successfully" });
   } catch (error) {
     next(error);

@@ -238,7 +238,9 @@ const Teachers = () => {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{t('experienceYears')}</span>
-                    <Badge variant="outline">{teacher.experience_years} years</Badge>
+                    <Badge variant="outline">
+                      {teacher.experience_years} {t('years')}
+                    </Badge>
                   </div>
                   {teacher.phone && (
                     <div className="flex items-center justify-between text-sm">
@@ -267,7 +269,7 @@ const Teachers = () => {
               {selectedTeacher ? t('editTeacher') : t('addTeacher')}
             </DialogTitle>
             <DialogDescription>
-              {selectedTeacher ? 'Update teacher information' : 'Add a new teacher to the institute'}
+              {selectedTeacher ? t('updateTeacherInformation') : t('addTeacherDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -289,7 +291,7 @@ const Teachers = () => {
                   value={formData.qualification}
                   onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
                   required
-                  placeholder="e.g., Hafiz, Ijazah in Hafs"
+                  placeholder={t('teacherQualificationPlaceholder')}
                   data-testid="teacher-qualification-input"
                 />
               </div>
@@ -331,10 +333,10 @@ const Teachers = () => {
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Set password for teacher login"
+                    placeholder={t('teacherPasswordPlaceholder')}
                     data-testid="teacher-password-input"
                   />
-                  <p className="text-xs text-muted-foreground">Provide email and password to create login account</p>
+                  <p className="text-xs text-muted-foreground">{t('loginAccountHint')}</p>
                 </div>
               )}
             </div>
@@ -356,7 +358,7 @@ const Teachers = () => {
           <DialogHeader>
             <DialogTitle>{t('confirm')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedTeacher?.full_name}? This action cannot be undone.
+              {t('deleteTeacherConfirmation', { name: selectedTeacher?.full_name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -1,5 +1,5 @@
 const { getCollection } = require("../config/database");
-const { createEvaluationErrorType, createExamEvaluation, createJuzEvaluation, createPageEvaluation } = require("../models");
+const { createEvaluationErrorType, createExamEvaluation, createJuzEvaluation, createPageEvaluation, UserRole } = require("../models");
 const { httpError } = require("./authService");
 
 async function studentScopedQuery(currentUser, studentId) {
@@ -17,7 +17,7 @@ async function listJuzEvaluations(currentUser, studentId) {
 }
 
 async function teacherIdForUser(user) {
-  if (user.role !== "teacher") return null;
+  if (![UserRole.TEACHER, UserRole.EXAM_TEACHER].includes(user.role)) return null;
   const teacher = await getCollection("teachers").findOne({ user_id: user.id }, { projection: { _id: 0 } });
   return teacher?.id || null;
 }
@@ -27,7 +27,17 @@ async function listExamEvaluations(currentUser, studentId) {
     const student = await getCollection("students").findOne({ user_id: currentUser.id }, { projection: { _id: 0 } });
     return getCollection("exam_evaluations").find({ student_id: student?.id || "__none__" }, { projection: { _id: 0 } }).toArray();
   }
-  if (currentUser.role === "teacher") {
+  if (currentUser.role === UserRole.EXAM_TEACHER) {
+    const requests = await getCollection("exam_requests").find({ status: "pending" }, { projection: { _id: 0 } }).toArray();
+    const studentIds = requests.map((request) => request.student_id);
+    return getCollection("exam_evaluations").find({
+      $or: [
+        { student_id: { $in: studentIds } },
+        { evaluator_id: currentUser.id }
+      ]
+    }, { projection: { _id: 0 } }).toArray();
+  }
+  if (currentUser.role === UserRole.TEACHER) {
     const teacherId = await teacherIdForUser(currentUser);
     return getCollection("exam_evaluations").find({ teacher_id: teacherId || "__none__" }, { projection: { _id: 0 } }).toArray();
   }
@@ -43,7 +53,12 @@ async function getExamEvaluation(id, currentUser) {
     if (!student || evaluation.student_id !== student.id) throw httpError(403, "Insufficient permissions");
   }
 
-  if (currentUser.role === "teacher") {
+  if (currentUser.role === UserRole.EXAM_TEACHER) {
+    const request = await getCollection("exam_requests").findOne({ student_id: evaluation.student_id }, { projection: { _id: 0 } });
+    if (!request && evaluation.evaluator_id !== currentUser.id) throw httpError(403, "Insufficient permissions");
+  }
+
+  if (currentUser.role === UserRole.TEACHER) {
     const teacherId = await teacherIdForUser(currentUser);
     if (!teacherId || evaluation.teacher_id !== teacherId) throw httpError(403, "Insufficient permissions");
   }
@@ -64,9 +79,17 @@ async function createJuz(data, user) {
 }
 
 async function createExam(data, user) {
+  if (user.role === UserRole.EXAM_TEACHER) {
+    const request = await getCollection("exam_requests").findOne({ student_id: data.student_id, status: "pending" }, { projection: { _id: 0 } });
+    if (!request) throw httpError(403, "Student is not raised for exam");
+    data = { ...data, from_juz: request.from_juz, to_juz: request.to_juz, exam_request_id: request.id };
+  }
   const teacher_id = data.teacher_id || await teacherIdForUser(user);
   const evaluation = createExamEvaluation({ ...data, teacher_id }, user.id);
   await getCollection("exam_evaluations").insertOne(evaluation);
+  if (data.exam_request_id) {
+    await getCollection("exam_requests").updateOne({ id: data.exam_request_id }, { $set: { status: "completed", completed_at: new Date().toISOString(), evaluation_id: evaluation.id } });
+  }
   return evaluation;
 }
 

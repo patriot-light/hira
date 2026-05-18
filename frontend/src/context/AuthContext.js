@@ -79,9 +79,10 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = () => user?.role === "admin";
   const isStaff = () => user?.role === "staff";
   const isTeacher = () => user?.role === "teacher";
+  const isExamTeacher = () => user?.role === "exam_teacher";
   const isStudent = () => user?.role === "student";
   const canManage = () => isAdmin() || isStaff();
-  const canEvaluate = () => isAdmin() || isStaff() || isTeacher();
+  const canEvaluate = () => isAdmin() || isStaff() || isTeacher() || isExamTeacher();
 
   return (
     <AuthContext.Provider
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }) => {
         isAdmin,
         isStaff,
         isTeacher,
+        isExamTeacher,
         isStudent,
         canManage,
         canEvaluate,

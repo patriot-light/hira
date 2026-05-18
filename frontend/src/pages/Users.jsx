@@ -1,10 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { usersAPI } from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { usersAPI } from "../services/api";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -12,20 +17,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../components/ui/dialog';
+} from "../components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
+} from "../components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+} from "../components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -33,34 +38,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../components/ui/table';
-import { 
-  Search, 
-  MoreVertical, 
-  Trash2, 
+} from "../components/ui/table";
+import {
+  Search,
+  MoreVertical,
+  Trash2,
   UserCog,
   Loader2,
-  Shield
-} from 'lucide-react';
-import { toast } from 'sonner';
+  Shield,
+} from "lucide-react";
+import { toast } from "sonner";
 
 const Users = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [newRole, setNewRole] = useState('');
+  const [newRole, setNewRole] = useState("");
 
   const fetchUsers = useCallback(async () => {
     try {
       const response = await usersAPI.getAll();
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error(t('error'));
+      console.error("Error fetching users:", error);
+      toast.error(t("error"));
     } finally {
       setLoading(false);
     }
@@ -73,24 +78,24 @@ const Users = () => {
   const handleUpdateRole = async () => {
     try {
       await usersAPI.updateRole(selectedUser.id, newRole);
-      toast.success('Role updated successfully');
+      toast.success(t("roleUpdated"));
       setRoleDialogOpen(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(t("error"));
     }
   };
 
   const handleDelete = async () => {
     try {
       await usersAPI.delete(selectedUser.id);
-      toast.success('User deleted successfully');
+      toast.success(t("userDeleted"));
       setDeleteDialogOpen(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(t("error"));
     }
   };
 
@@ -102,17 +107,25 @@ const Users = () => {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700';
-      case 'staff': return 'bg-blue-100 text-blue-700';
-      case 'teacher': return 'bg-green-100 text-green-700';
-      case 'student': return 'bg-yellow-100 text-yellow-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "admin":
+        return "bg-red-100 text-red-700";
+      case "staff":
+        return "bg-blue-100 text-blue-700";
+      case "teacher":
+        return "bg-green-100 text-green-700";
+      case "exam_teacher":
+        return "bg-purple-100 text-purple-700";
+      case "student":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (loading) {
@@ -129,10 +142,10 @@ const Users = () => {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
           <UserCog className="h-8 w-8 text-primary" />
-          {t('users')}
+          {t("users")}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Manage user accounts and roles
+          {t("manageUsersDescription")}
         </p>
       </div>
 
@@ -142,7 +155,7 @@ const Users = () => {
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t('search')}
+              placeholder={t("search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="ps-10"
@@ -159,24 +172,28 @@ const Users = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('fullName')}</TableHead>
-                  <TableHead>{t('email')}</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  <TableHead className="w-12">{t('actions')}</TableHead>
+                  <TableHead>{t("fullName")}</TableHead>
+                  <TableHead>{t("email")}</TableHead>
+                  <TableHead>{t("role")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead className="w-12">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      {t('noData')}
+                    <TableCell
+                      colSpan={5}
+                      className="text-center py-8 text-muted-foreground">
+                      {t("noData")}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
                     <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
-                      <TableCell className="font-medium">{user.full_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {user.full_name}
+                      </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge className={getRoleColor(user.role)}>
@@ -185,28 +202,35 @@ const Users = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                          {user.is_active ? t('active') : t('inactive')}
+                        <Badge
+                          variant={user.is_active ? "default" : "secondary"}>
+                          {user.is_active ? t("active") : t("inactive")}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" data-testid={`user-actions-${user.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              data-testid={`user-actions-${user.id}`}>
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openRoleDialog(user)}>
+                            <DropdownMenuItem
+                              onClick={() => openRoleDialog(user)}>
                               <Shield className="h-4 w-4 me-2" />
-                              Change Role
+                              {t("changeRole")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => { setSelectedUser(user); setDeleteDialogOpen(true); }}
-                              className="text-destructive"
-                            >
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="text-destructive">
                               <Trash2 className="h-4 w-4 me-2" />
-                              {t('delete')}
+                              {t("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -224,9 +248,9 @@ const Users = () => {
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Change User Role</DialogTitle>
+            <DialogTitle>{t("changeUserRole")}</DialogTitle>
             <DialogDescription>
-              Update role for {selectedUser?.full_name}
+              {t("updateRoleFor", { name: selectedUser?.full_name })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -235,19 +259,25 @@ const Users = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">{t('admin')}</SelectItem>
-                <SelectItem value="staff">{t('staffRole')}</SelectItem>
-                <SelectItem value="teacher">{t('teacher')}</SelectItem>
-                <SelectItem value="student">{t('student')}</SelectItem>
+                <SelectItem value="admin">{t("admin")}</SelectItem>
+                <SelectItem value="staff">{t("staffRole")}</SelectItem>
+                <SelectItem value="teacher">{t("teacher")}</SelectItem>
+                <SelectItem value="exam_teacher">
+                  {t("exam_teacher")}
+                </SelectItem>
+                <SelectItem value="student">{t("student")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
-              {t('cancel')}
+              {t("cancel")}
             </Button>
-            <Button onClick={handleUpdateRole} className="bg-primary hover:bg-primary/90" data-testid="confirm-role-btn">
-              {t('save')}
+            <Button
+              onClick={handleUpdateRole}
+              className="bg-primary hover:bg-primary/90"
+              data-testid="confirm-role-btn">
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -257,17 +287,22 @@ const Users = () => {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('confirm')}</DialogTitle>
+            <DialogTitle>{t("confirm")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedUser?.full_name}? This action cannot be undone.
+              {t("deleteUserConfirmation", { name: selectedUser?.full_name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              {t('cancel')}
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}>
+              {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDelete} data-testid="confirm-delete-user-btn">
-              {t('delete')}
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              data-testid="confirm-delete-user-btn">
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

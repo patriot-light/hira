@@ -63,7 +63,7 @@ const ErrorTypes = () => {
         ...formData,
         deduction: Number(formData.deduction),
       });
-      toast.success("Error type saved");
+      toast.success(t("errorTypeSaved"));
       setDialogOpen(false);
       resetForm();
       fetchData();
@@ -75,7 +75,7 @@ const ErrorTypes = () => {
   const handleDelete = async (id) => {
     try {
       await errorTypesAPI.delete(id);
-      toast.success("Error type deleted");
+      toast.success(t("errorTypeDeleted"));
       fetchData();
     } catch (error) {
       toast.error(t("error"));
@@ -96,10 +96,10 @@ const ErrorTypes = () => {
         <div>
           <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground md:text-3xl">
             <AlertCircle className="h-8 w-8 text-primary" />
-            Error Types
+            {t("errorTypes")}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Shared deductions used in evaluations and sessions
+            {t("errorTypesDescription")}
           </p>
         </div>
         <Button
@@ -111,22 +111,22 @@ const ErrorTypes = () => {
           data-testid="add-error-type-btn"
         >
           <Plus className="h-4 w-4" />
-          Add Error
+          {t("addError")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Error Table</CardTitle>
+          <CardTitle>{t("errorTable")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Deduction</TableHead>
-                  <TableHead className="hidden md:table-cell">Description</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("deduction")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("description")}</TableHead>
                   <TableHead className="w-12">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -142,7 +142,9 @@ const ErrorTypes = () => {
                     <TableRow key={errorType.id}>
                       <TableCell className="font-medium">{errorType.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">-{errorType.deduction} marks</Badge>
+                        <Badge variant="outline">
+                          -{errorType.deduction} {t("marks")}
+                        </Badge>
                       </TableCell>
                       <TableCell className="hidden max-w-md truncate md:table-cell">
                         {errorType.description || "-"}
@@ -153,7 +155,7 @@ const ErrorTypes = () => {
                           size="icon"
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleDelete(errorType.id)}
-                          aria-label={`Delete ${errorType.name}`}
+                          aria-label={`${t("delete")} ${errorType.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -170,14 +172,14 @@ const ErrorTypes = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Error</DialogTitle>
+            <DialogTitle>{t("addError")}</DialogTitle>
             <DialogDescription>
-              Add a mistake type and the marks it deducts.
+              {t("addErrorDescription")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Error name *</Label>
+              <Label>{t("errorName")} *</Label>
               <Input
                 value={formData.name}
                 onChange={(event) =>
@@ -188,7 +190,7 @@ const ErrorTypes = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Deduction *</Label>
+              <Label>{t("deduction")} *</Label>
               <Input
                 type="number"
                 min="0"

@@ -33,13 +33,13 @@ const Sidebar = ({ isOpen, onClose }) => {
       to: "/dashboard",
       icon: LayoutDashboard,
       label: t("dashboard"),
-      roles: ["admin", "staff", "teacher", "student"],
+      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
     },
     {
       to: "/students",
       icon: Users,
       label: t("students"),
-      roles: ["admin", "staff", "teacher"],
+      roles: ["admin", "staff", "teacher", "exam_teacher"],
     },
     {
       to: "/teachers",
@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       to: "/evaluations",
       icon: ClipboardCheck,
       label: t("evaluations"),
-      roles: ["admin", "staff", "teacher", "student"],
+      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
     },
     {
       to: "/sessions",
@@ -68,7 +68,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       to: "/error-types",
       icon: AlertCircle,
-      label: "Error Types",
+      label: t("errorTypes"),
       roles: ["admin", "staff"],
     },
     {

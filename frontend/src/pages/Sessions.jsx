@@ -2,10 +2,20 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { errorTypesAPI, sessionsAPI, studentsAPI, teachersAPI } from "../services/api";
+import {
+  errorTypesAPI,
+  sessionsAPI,
+  studentsAPI,
+  teachersAPI,
+} from "../services/api";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -33,13 +43,6 @@ import {
 } from "../components/ui/table";
 import { FileText, Loader2, Mic2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-const resultLabel = {
-  excellent: "Excellent",
-  very_good: "Very Good",
-  good: "Good",
-  needs_review: "Needs Review",
-};
 
 const getScoreColor = (score) => {
   if (score >= 90) return "bg-green-100 text-green-700";
@@ -80,12 +83,13 @@ const Sessions = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [sessionsRes, studentsRes, teachersRes, errorTypesRes] = await Promise.all([
-        sessionsAPI.getAll(),
-        studentsAPI.getAll(),
-        teachersAPI.getAll(),
-        errorTypesAPI.getAll(),
-      ]);
+      const [sessionsRes, studentsRes, teachersRes, errorTypesRes] =
+        await Promise.all([
+          sessionsAPI.getAll(),
+          studentsAPI.getAll(),
+          teachersAPI.getAll(),
+          errorTypesAPI.getAll(),
+        ]);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setTeachers(teachersRes.data);
@@ -148,7 +152,7 @@ const Sessions = () => {
   const handleDelete = async (id) => {
     try {
       await sessionsAPI.delete(id);
-      toast.success("Session deleted");
+      toast.success(t("sessionDeleted"));
       fetchData();
     } catch (error) {
       toast.error(t("error"));
@@ -179,7 +183,9 @@ const Sessions = () => {
   };
 
   const removeError = (index) => {
-    setErrors((current) => current.filter((_, errorIndex) => errorIndex !== index));
+    setErrors((current) =>
+      current.filter((_, errorIndex) => errorIndex !== index),
+    );
   };
 
   const getStudentName = (id) =>
@@ -215,8 +221,7 @@ const Sessions = () => {
               setDialogOpen(true);
             }}
             className="gap-2 bg-primary hover:bg-primary/90"
-            data-testid="add-session-btn"
-          >
+            data-testid="add-session-btn">
             <Plus className="h-4 w-4" />
             {t("addSession")}
           </Button>
@@ -225,7 +230,7 @@ const Sessions = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Session Results</CardTitle>
+          <CardTitle>{t("sessionResults")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -233,7 +238,9 @@ const Sessions = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("studentName")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("teacherName")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("teacherName")}
+                  </TableHead>
                   <TableHead>{t("totalPages")}</TableHead>
                   <TableHead>{t("totalErrors")}</TableHead>
                   <TableHead>{t("finalScore")}</TableHead>
@@ -244,13 +251,17 @@ const Sessions = () => {
               <TableBody>
                 {sessions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="py-8 text-center text-muted-foreground">
                       {t("noData")}
                     </TableCell>
                   </TableRow>
                 ) : (
                   sessions.map((session) => (
-                    <TableRow key={session.id} data-testid={`session-row-${session.id}`}>
+                    <TableRow
+                      key={session.id}
+                      data-testid={`session-row-${session.id}`}>
                       <TableCell className="font-medium">
                         {getStudentName(session.student_id)}
                       </TableCell>
@@ -261,7 +272,10 @@ const Sessions = () => {
                         <Badge variant="outline">{session.total_pages}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={session.total_errors ? "destructive" : "outline"}>
+                        <Badge
+                          variant={
+                            session.total_errors ? "destructive" : "outline"
+                          }>
                           {session.total_errors}
                         </Badge>
                       </TableCell>
@@ -270,15 +284,16 @@ const Sessions = () => {
                           {session.final_score?.toFixed(1)}%
                         </Badge>
                       </TableCell>
-                      <TableCell>{resultLabel[session.result] || t(session.result)}</TableCell>
+                      <TableCell>
+                        {session.result ? t(session.result) : "-"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/sessions/${session.id}`)}
-                            data-testid={`view-session-${session.id}`}
-                          >
+                            data-testid={`view-session-${session.id}`}>
                             <FileText className="h-4 w-4" />
                           </Button>
                           {canEvaluate() && (
@@ -286,8 +301,7 @@ const Sessions = () => {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDelete(session.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
+                              className="text-destructive hover:text-destructive">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
@@ -306,7 +320,7 @@ const Sessions = () => {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>{t("addSession")}</DialogTitle>
-            <DialogDescription>Record a new Tasmee' session.</DialogDescription>
+            <DialogDescription>{t("newSessionDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid gap-4 md:grid-cols-4">
@@ -314,7 +328,7 @@ const Sessions = () => {
                 <Label>{t("studentName")} *</Label>
                 <Select value={studentId} onValueChange={setStudentId}>
                   <SelectTrigger data-testid="session-student-select">
-                    <SelectValue placeholder="Select student" />
+                    <SelectValue placeholder={t("selectStudent")} />
                   </SelectTrigger>
                   <SelectContent>
                     {students.map((student) => (
@@ -330,10 +344,9 @@ const Sessions = () => {
                 <Select
                   value={teacherId}
                   disabled={teacherLocked}
-                  onValueChange={setTeacherId}
-                >
+                  onValueChange={setTeacherId}>
                   <SelectTrigger data-testid="session-teacher-select">
-                    <SelectValue placeholder="Select teacher" />
+                    <SelectValue placeholder={t("selectTeacher")} />
                   </SelectTrigger>
                   <SelectContent>
                     {teachers.map((teacher) => (
@@ -383,7 +396,7 @@ const Sessions = () => {
 
             <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
               <div className="space-y-3">
-                <Label>Recitation Errors</Label>
+                <Label>{t("recitationErrors")}</Label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {errorTypes.map((errorType) => (
                     <Button
@@ -391,12 +404,13 @@ const Sessions = () => {
                       type="button"
                       variant="outline"
                       className="h-auto min-h-16 justify-between gap-3 whitespace-normal p-4 text-left"
-                      onClick={() => addError(errorType)}
-                    >
+                      onClick={() => addError(errorType)}>
                       <span>
-                        <span className="block font-semibold">{errorType.name}</span>
+                        <span className="block font-semibold">
+                          {errorType.name}
+                        </span>
                         <span className="block text-sm text-muted-foreground">
-                          -{errorType.deduction} marks
+                          -{errorType.deduction} {t("marks")}
                         </span>
                       </span>
                       <Plus className="h-5 w-5 shrink-0" />
@@ -406,10 +420,14 @@ const Sessions = () => {
               </div>
 
               <div className="rounded-md border bg-muted/30 p-4">
-                <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
-                <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("finalScore")}
+                </p>
+                <p className="mt-1 text-5xl font-bold text-primary">
+                  {liveScore}%
+                </p>
                 <Badge className={`${getScoreColor(liveScore)} mt-3`}>
-                  {resultLabel[liveResult]}
+                  {t(liveResult)}
                 </Badge>
                 <div className="mt-5 space-y-2">
                   <div className="flex justify-between text-sm">
@@ -417,7 +435,7 @@ const Sessions = () => {
                     <strong>{errors.length}</strong>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Total deduction</span>
+                    <span>{t("totalDeduction")}</span>
                     <strong>{totalPenalty}</strong>
                   </div>
                 </div>
@@ -425,10 +443,10 @@ const Sessions = () => {
             </div>
 
             <div className="space-y-3">
-              <Label>Recorded Errors</Label>
+              <Label>{t("recordedErrors")}</Label>
               {errors.length === 0 ? (
                 <div className="rounded-md border border-dashed p-5 text-center text-muted-foreground">
-                  No errors recorded
+                  {t("noErrorsRecorded")}
                 </div>
               ) : (
                 <div className="grid gap-3">
@@ -440,27 +458,33 @@ const Sessions = () => {
                             {error.name || error.category}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Page {error.page_number || "-"} | -{error.penalty} mark
+                            {t("page")} {error.page_number || "-"} | -
+                            {error.penalty} {t("mark")}
                           </p>
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeError(index)}
-                        >
+                          onClick={() => removeError(index)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-3">
                         <div className="space-y-1">
-                          <Label>Page</Label>
+                          <Label>{t("page")}</Label>
                           <Input
                             type="number"
                             min="1"
                             max="604"
                             value={error.page_number}
-                            onChange={(event) => updateError(index, "page_number", event.target.value)}
+                            onChange={(event) =>
+                              updateError(
+                                index,
+                                "page_number",
+                                event.target.value,
+                              )
+                            }
                           />
                         </div>
                         <div className="space-y-1">
@@ -470,14 +494,18 @@ const Sessions = () => {
                             step="0.5"
                             min="0"
                             value={error.penalty}
-                            onChange={(event) => updateError(index, "penalty", event.target.value)}
+                            onChange={(event) =>
+                              updateError(index, "penalty", event.target.value)
+                            }
                           />
                         </div>
                         <div className="space-y-1">
                           <Label>{t("word")}</Label>
                           <Input
                             value={error.word}
-                            onChange={(event) => updateError(index, "word", event.target.value)}
+                            onChange={(event) =>
+                              updateError(index, "word", event.target.value)
+                            }
                           />
                         </div>
                       </div>
@@ -488,10 +516,15 @@ const Sessions = () => {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+              <Button
+                type="submit"
+                className="gap-2 bg-primary hover:bg-primary/90">
                 <Save className="h-4 w-4" />
                 {t("save")}
               </Button>
@@ -499,7 +532,6 @@ const Sessions = () => {
           </form>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

@@ -21,13 +21,6 @@ import {
 import { ArrowLeft, ClipboardCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const resultLabel = {
-  excellent: "Excellent",
-  very_good: "Very Good",
-  good: "Good",
-  needs_review: "Needs Review",
-};
-
 const getScoreColor = (score = 0) => {
   if (score >= 90) return "bg-green-100 text-green-700";
   if (score >= 80) return "bg-blue-100 text-blue-700";
@@ -60,14 +53,14 @@ const EvaluationDetails = () => {
         setStudents(studentsRes.data || []);
         setTeachers(teachersRes.data || []);
       } catch (error) {
-        toast.error(error.response?.data?.detail || "Error");
+        toast.error(error.response?.data?.detail || t("error"));
       } finally {
         setLoading(false);
       }
     };
 
     if (id) fetchData();
-  }, [id]);
+  }, [id, t]);
 
   const getStudentName = (studentId) => {
     return (
@@ -109,16 +102,16 @@ const EvaluationDetails = () => {
             className="mb-2 gap-2 px-0"
             onClick={() => navigate("/evaluations")}>
             <ArrowLeft className="h-4 w-4" />
-            Back to evaluations
+            {t("backToEvaluations")}
           </Button>
 
           <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground md:text-3xl">
             <ClipboardCheck className="h-8 w-8 text-primary" />
-            Evaluation Details
+            {t("evaluationDetails")}
           </h1>
 
           <p className="mt-1 text-muted-foreground">
-            Juz {evaluation.from_juz}-{evaluation.to_juz}
+            {t("juz")} {evaluation.from_juz}-{evaluation.to_juz}
           </p>
         </div>
 
@@ -132,7 +125,7 @@ const EvaluationDetails = () => {
           </p>
 
           <Badge className={`${getScoreColor(evaluation.final_score)} mt-3`}>
-            {resultLabel[evaluation.result] || evaluation.result || "-"}
+            {evaluation.result ? t(evaluation.result) : "-"}
           </Badge>
         </div>
       </div>
@@ -147,27 +140,27 @@ const EvaluationDetails = () => {
           getTeacherName(evaluation.teacher_id),
         )}
         {renderDetailBox(
-          "Range",
-          `Juz ${evaluation.from_juz}-${evaluation.to_juz}`,
+          t("range"),
+          `${t("juz")} ${evaluation.from_juz}-${evaluation.to_juz}`,
         )}
         {renderDetailBox(
-          "Date",
+          t("date"),
           evaluation.date ? new Date(evaluation.date).toLocaleString() : "-",
         )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {renderDetailBox(t("totalErrors"), evaluation.total_errors)}
-        {renderDetailBox("Total deduction", evaluation.total_deduction)}
+        {renderDetailBox(t("totalDeduction"), evaluation.total_deduction)}
         {renderDetailBox(
           t("result"),
-          resultLabel[evaluation.result] || evaluation.result,
+          evaluation.result ? t(evaluation.result) : "-",
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Recorded Errors</CardTitle>
+          <CardTitle>{t("recordedErrors")}</CardTitle>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -175,9 +168,11 @@ const EvaluationDetails = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Error</TableHead>
-                  <TableHead>Deduction</TableHead>
-                  <TableHead className="hidden md:table-cell">Note</TableHead>
+                  <TableHead>{t("errorName")}</TableHead>
+                  <TableHead>{t("page")}</TableHead>
+                  <TableHead>{t("word")}</TableHead>
+                  <TableHead>{t("deduction")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("note")}</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -186,8 +181,12 @@ const EvaluationDetails = () => {
                   evaluation.errors.map((item, index) => (
                     <TableRow key={item.id || index}>
                       <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{item.page_number || "-"}</TableCell>
+                      <TableCell>{item.word || "-"}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">-{item.deduction} marks</Badge>
+                        <Badge variant="outline">
+                          -{item.deduction} {t("marks")}
+                        </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {item.note || "-"}
@@ -197,9 +196,9 @@ const EvaluationDetails = () => {
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={3}
+                      colSpan={5}
                       className="py-8 text-center text-muted-foreground">
-                      No errors recorded
+                      {t("noErrorsRecorded")}
                     </TableCell>
                   </TableRow>
                 )}

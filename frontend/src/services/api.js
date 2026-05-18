@@ -42,7 +42,7 @@ export const authAPI = {
 export const usersAPI = {
   getAll: () => api.get("/users"),
   updateRole: (userId, role) =>
-    api.put(`/users/${userId}/role`, null, { params: { role } }),
+    api.put(`/users/${userId}/role`, { role }),
   delete: (userId) => api.delete(`/users/${userId}`),
 };
 
@@ -53,6 +53,7 @@ export const studentsAPI = {
   create: (data) => api.post("/students", data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
+  raiseForExam: (id, data) => api.post(`/students/${id}/exam-request`, data),
 };
 
 // Teachers API

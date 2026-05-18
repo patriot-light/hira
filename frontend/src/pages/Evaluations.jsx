@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -11,6 +11,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -48,13 +49,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const resultLabel = {
-  excellent: "Excellent",
-  very_good: "Very Good",
-  good: "Good",
-  needs_review: "Needs Review",
-};
-
 const getScoreColor = (score) => {
   if (score >= 90) return "bg-green-100 text-green-700";
   if (score >= 80) return "bg-blue-100 text-blue-700";
@@ -72,7 +66,8 @@ const getResult = (score) => {
 const Evaluations = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { canEvaluate, isTeacher, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { canEvaluate, isTeacher, isExamTeacher, user } = useAuth();
   const [evaluations, setEvaluations] = useState([]);
   const [errorTypes, setErrorTypes] = useState([]);
   const [students, setStudents] = useState([]);
@@ -87,7 +82,9 @@ const Evaluations = () => {
     errors: [],
     notes: "",
   });
-  const teacherLocked = isTeacher();
+  const examTeacherLocked = isExamTeacher();
+  const teacherLocked = isTeacher() || examTeacherLocked;
+  const openedFromStudentList = useRef(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -124,11 +121,12 @@ const Evaluations = () => {
   const liveResult = getResult(liveScore);
 
   const resetExam = () => {
+    const firstRaisedStudent = examTeacherLocked ? students[0] : null;
     setExam({
-      student_id: "",
+      student_id: firstRaisedStudent?.id || "",
       teacher_id: teacherLocked && loggedTeacher ? loggedTeacher.id : "",
-      from_juz: "1",
-      to_juz: "1",
+      from_juz: firstRaisedStudent?.exam_request?.from_juz?.toString() || "1",
+      to_juz: firstRaisedStudent?.exam_request?.to_juz?.toString() || "1",
       errors: [],
       notes: "",
     });
@@ -140,6 +138,43 @@ const Evaluations = () => {
     }
   }, [teacherLocked, loggedTeacher]);
 
+  useEffect(() => {
+    if (
+      !examTeacherLocked ||
+      openedFromStudentList.current ||
+      loading ||
+      searchParams.get("exam") !== "1"
+    ) {
+      return;
+    }
+
+    const studentId = searchParams.get("student_id");
+    const selectedStudent = students.find((student) => student.id === studentId);
+    if (!selectedStudent) return;
+
+    openedFromStudentList.current = true;
+    setExam({
+      student_id: selectedStudent.id,
+      teacher_id: loggedTeacher?.id || "",
+      from_juz: selectedStudent.exam_request?.from_juz?.toString() || "1",
+      to_juz: selectedStudent.exam_request?.to_juz?.toString() || "1",
+      errors: [],
+      notes: "",
+    });
+    setExamOpen(true);
+  }, [examTeacherLocked, loading, loggedTeacher, searchParams, students]);
+
+  useEffect(() => {
+    if (!examTeacherLocked || !exam.student_id) return;
+    const selected = students.find((student) => student.id === exam.student_id);
+    if (!selected?.exam_request) return;
+    setExam((current) => ({
+      ...current,
+      from_juz: selected.exam_request.from_juz.toString(),
+      to_juz: selected.exam_request.to_juz.toString(),
+    }));
+  }, [examTeacherLocked, exam.student_id, students]);
+
   const addError = (errorType) => {
     setExam((current) => ({
       ...current,
@@ -149,9 +184,20 @@ const Evaluations = () => {
           error_type_id: errorType.id,
           name: errorType.name,
           deduction: Number(errorType.deduction),
+          page_number: "",
+          word: "",
           note: "",
         },
       ],
+    }));
+  };
+
+  const updateError = (index, field, value) => {
+    setExam((current) => ({
+      ...current,
+      errors: current.errors.map((error, errorIndex) =>
+        errorIndex === index ? { ...error, [field]: value } : error,
+      ),
     }));
   };
 
@@ -165,11 +211,11 @@ const Evaluations = () => {
   const handleSaveExam = async (event) => {
     event.preventDefault();
     if (!exam.student_id) {
-      toast.error("Please select a student");
+      toast.error(t("pleaseSelectStudent"));
       return;
     }
     if (Number(exam.from_juz) > Number(exam.to_juz)) {
-      toast.error("The starting Juz must be before the ending Juz");
+      toast.error(t("invalidJuzRange"));
       return;
     }
 
@@ -192,7 +238,7 @@ const Evaluations = () => {
   const handleDeleteExam = async (id) => {
     try {
       await examEvaluationsAPI.delete(id);
-      toast.success("Evaluation deleted");
+      toast.success(t("evaluationDeleted"));
       fetchData();
     } catch (error) {
       toast.error(t("error"));
@@ -204,14 +250,6 @@ const Evaluations = () => {
 
   const getTeacherName = (id) =>
     teachers.find((teacher) => teacher.id === id)?.full_name || "-";
-
-  const groupedErrors = exam.errors.reduce((groups, error, index) => {
-    const key = error.error_type_id || error.name;
-    if (!groups[key]) groups[key] = { ...error, count: 0, indexes: [] };
-    groups[key].count += 1;
-    groups[key].indexes.push(index);
-    return groups;
-  }, {});
 
   if (loading) {
     return (
@@ -230,7 +268,7 @@ const Evaluations = () => {
             {t("evaluations")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {evaluations.length} saved exams
+            {evaluations.length} {t("savedExams")}
           </p>
         </div>
         {canEvaluate() && (
@@ -243,14 +281,14 @@ const Evaluations = () => {
             data-testid="start-exam-btn"
           >
             <BookOpenCheck className="h-4 w-4" />
-            Start Exam
+            {t("startExam")}
           </Button>
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Exam Results</CardTitle>
+          <CardTitle>{t("examResults")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -261,7 +299,7 @@ const Evaluations = () => {
                   <TableHead className="hidden md:table-cell">
                     {t("teacherName")}
                   </TableHead>
-                  <TableHead>Range</TableHead>
+                  <TableHead>{t("range")}</TableHead>
                   <TableHead>{t("totalErrors")}</TableHead>
                   <TableHead>{t("finalScore")}</TableHead>
                   <TableHead>{t("result")}</TableHead>
@@ -288,7 +326,7 @@ const Evaluations = () => {
                         {getTeacherName(evaluation.teacher_id)}
                       </TableCell>
                       <TableCell>
-                        Juz {evaluation.from_juz}-{evaluation.to_juz}
+                        {t("juz")} {evaluation.from_juz}-{evaluation.to_juz}
                       </TableCell>
                       <TableCell>
                         <Badge variant={evaluation.total_errors ? "destructive" : "outline"}>
@@ -300,7 +338,7 @@ const Evaluations = () => {
                           {evaluation.final_score}%
                         </Badge>
                       </TableCell>
-                      <TableCell>{resultLabel[evaluation.result]}</TableCell>
+                      <TableCell>{evaluation.result ? t(evaluation.result) : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button
@@ -335,9 +373,9 @@ const Evaluations = () => {
       <Dialog open={examOpen} onOpenChange={setExamOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           <DialogHeader>
-            <DialogTitle>New Exam</DialogTitle>
+            <DialogTitle>{t("newExam")}</DialogTitle>
             <DialogDescription>
-              Select the range, tap each error, then save the final grade.
+              {t("newExamDescription")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveExam} className="space-y-5">
@@ -346,12 +384,13 @@ const Evaluations = () => {
                 <Label>{t("studentName")} *</Label>
                 <Select
                   value={exam.student_id}
+                  disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, student_id: value }))
                   }
                 >
                   <SelectTrigger data-testid="exam-student-select">
-                    <SelectValue placeholder="Select student" />
+                    <SelectValue placeholder={t("selectStudent")} />
                   </SelectTrigger>
                   <SelectContent>
                     {students.map((student) => (
@@ -372,7 +411,7 @@ const Evaluations = () => {
                   }
                 >
                   <SelectTrigger data-testid="exam-teacher-select">
-                    <SelectValue placeholder="Select teacher" />
+                    <SelectValue placeholder={t("selectTeacher")} />
                   </SelectTrigger>
                   <SelectContent>
                     {teachers.map((teacher) => (
@@ -384,9 +423,10 @@ const Evaluations = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>From Juz</Label>
+                <Label>{t("fromJuz")}</Label>
                 <Select
                   value={exam.from_juz}
+                  disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, from_juz: value }))
                   }
@@ -397,16 +437,17 @@ const Evaluations = () => {
                   <SelectContent>
                     {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
                       <SelectItem key={juz} value={juz.toString()}>
-                        Juz {juz}
+                        {t("juz")} {juz}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>To Juz</Label>
+                <Label>{t("toJuz")}</Label>
                 <Select
                   value={exam.to_juz}
+                  disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, to_juz: value }))
                   }
@@ -417,7 +458,7 @@ const Evaluations = () => {
                   <SelectContent>
                     {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
                       <SelectItem key={juz} value={juz.toString()}>
-                        Juz {juz}
+                        {t("juz")} {juz}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -427,7 +468,7 @@ const Evaluations = () => {
 
             <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
               <div className="space-y-3">
-                <Label>Error Table</Label>
+                <Label>{t("errorTable")}</Label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {errorTypes.map((errorType) => (
                     <Button
@@ -441,7 +482,7 @@ const Evaluations = () => {
                       <span>
                         <span className="block font-semibold">{errorType.name}</span>
                         <span className="block text-sm text-muted-foreground">
-                          -{errorType.deduction} marks
+                          -{errorType.deduction} {t("marks")}
                         </span>
                       </span>
                       <Plus className="h-5 w-5 shrink-0" />
@@ -454,7 +495,7 @@ const Evaluations = () => {
                 <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
                 <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
                 <Badge className={`${getScoreColor(liveScore)} mt-3`}>
-                  {resultLabel[liveResult]}
+                  {t(liveResult)}
                 </Badge>
                 <div className="mt-5 space-y-2">
                   <div className="flex justify-between text-sm">
@@ -462,7 +503,7 @@ const Evaluations = () => {
                     <strong>{exam.errors.length}</strong>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Total deduction</span>
+                    <span>{t("totalDeduction")}</span>
                     <strong>{totalDeduction}</strong>
                   </div>
                 </div>
@@ -470,33 +511,58 @@ const Evaluations = () => {
             </div>
 
             <div className="space-y-3">
-              <Label>Recorded Errors</Label>
+              <Label>{t("recordedErrors")}</Label>
               {exam.errors.length === 0 ? (
                 <div className="rounded-md border border-dashed p-5 text-center text-muted-foreground">
-                  No errors recorded
+                  {t("noErrorsRecorded")}
                 </div>
               ) : (
-                <div className="grid gap-2">
-                  {Object.values(groupedErrors).map((error) => (
+                <div className="grid gap-3">
+                  {exam.errors.map((error, index) => (
                     <div
-                      key={error.error_type_id || error.name}
-                      className="flex items-center justify-between gap-3 rounded-md border p-3"
+                      key={`${error.error_type_id || error.name}-${index}`}
+                      className="rounded-md border p-3"
                     >
-                      <div>
-                        <p className="font-medium">{error.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {error.count} x -{error.deduction} marks
-                        </p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{error.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            -{error.deduction} {t("marks")}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeError(index)}
+                          aria-label={`${t("remove")} ${error.name}`}
+                        >
+                          <MinusCircle className="h-5 w-5" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeError(error.indexes[error.indexes.length - 1])}
-                        aria-label={`Remove ${error.name}`}
-                      >
-                        <MinusCircle className="h-5 w-5" />
-                      </Button>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label>{t("page")}</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="604"
+                            value={error.page_number}
+                            onChange={(event) =>
+                              updateError(index, "page_number", event.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>{t("word")}</Label>
+                          <Input
+                            value={error.word}
+                            onChange={(event) =>
+                              updateError(index, "word", event.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -510,7 +576,7 @@ const Evaluations = () => {
                 onChange={(event) =>
                   setExam((current) => ({ ...current, notes: event.target.value }))
                 }
-                placeholder="Optional notes"
+                placeholder={t("optionalNotes")}
               />
             </div>
 

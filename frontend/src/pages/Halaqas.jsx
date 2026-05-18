@@ -9,10 +9,10 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Checkbox } from "../components/ui/checkbox";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
+import { SearchableMultiSelect } from "../components/ui/searchable-multi-select";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,7 @@ import {
   Trash2,
   BookOpen,
   Users,
+  FileText,
   Calendar,
   Clock,
   Loader2,
@@ -50,7 +51,7 @@ import { toast } from "sonner";
 
 const Halaqas = () => {
   const { t } = useTranslation();
-  const { canManage } = useAuth();
+  const { canManage, isTeacher } = useAuth();
   const [halaqas, setHalaqas] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
@@ -58,7 +59,10 @@ const Halaqas = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [examDialogOpen, setExamDialogOpen] = useState(false);
   const [selectedHalaqa, setSelectedHalaqa] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [examRange, setExamRange] = useState({ from_juz: "1", to_juz: "1" });
   const [formName, setFormName] = useState("");
   const [formLevel, setFormLevel] = useState("beginner");
   const [formTeacherIds, setFormTeacherIds] = useState([]);
@@ -135,12 +139,34 @@ const Halaqas = () => {
     setFormTeacherIds([]);
   };
 
-  const toggleTeacher = (teacherId) => {
-    setFormTeacherIds((current) =>
-      current.includes(teacherId)
-        ? current.filter((id) => id !== teacherId)
-        : [...current, teacherId],
+  const canRaiseForExam = () => canManage() || isTeacher();
+
+  const getHalaqaStudents = (halaqaId) =>
+    allStudents.filter((student) =>
+      (student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : [])).includes(halaqaId),
     );
+
+  const openExamDialog = (student) => {
+    setSelectedStudent(student);
+    setExamRange({ from_juz: "1", to_juz: "1" });
+    setExamDialogOpen(true);
+  };
+
+  const handleRaiseForExam = async (event) => {
+    event.preventDefault();
+    if (Number(examRange.from_juz) > Number(examRange.to_juz)) {
+      toast.error(t("invalidJuzRange"));
+      return;
+    }
+    try {
+      await studentsAPI.raiseForExam(selectedStudent.id, examRange);
+      toast.success(t("studentRaisedForExam"));
+      setExamDialogOpen(false);
+      setSelectedStudent(null);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t("error"));
+    }
   };
 
   const getLevelColor = (level) => {
@@ -158,8 +184,7 @@ const Halaqas = () => {
     return names.length ? names.join(", ") : "-";
   };
 
-  const getStudentCount = (halaqaId) =>
-    allStudents.filter((s) => (s.halaqa_ids || (s.halaqa_id ? [s.halaqa_id] : [])).includes(halaqaId)).length;
+  const getStudentCount = (halaqaId) => getHalaqaStudents(halaqaId).length;
 
   const filteredHalaqas = halaqas.filter((h) =>
     h.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -289,6 +314,28 @@ const Halaqas = () => {
                   </span>
                   <Badge variant="outline">{getStudentCount(halaqa.id)}</Badge>
                 </div>
+                {canRaiseForExam() && (
+                  <div className="space-y-2 border-t pt-3">
+                    {getHalaqaStudents(halaqa.id).slice(0, 4).map((student) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-sm"
+                      >
+                        <span className="truncate">{student.full_name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-1 px-2"
+                          onClick={() => openExamDialog(student)}
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          {t("raise")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
@@ -303,8 +350,8 @@ const Halaqas = () => {
             </DialogTitle>
             <DialogDescription>
               {selectedHalaqa
-                ? "Update halaqa information"
-                : "Create a new study circle"}
+                ? t("updateHalaqaInformation")
+                : t("createStudyCircle")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -335,24 +382,15 @@ const Halaqas = () => {
             </div>
             <div className="space-y-2">
               <Label>{t("assignedTeachers")}</Label>
-              <div className="grid gap-2 rounded-md border p-3">
-                {teachers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t("noData")}</p>
-                ) : (
-                  teachers.map((teacher) => (
-                    <label
-                      key={teacher.id}
-                      className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-muted"
-                    >
-                      <Checkbox
-                        checked={formTeacherIds.includes(teacher.id)}
-                        onCheckedChange={() => toggleTeacher(teacher.id)}
-                      />
-                      <span className="text-sm font-medium">{teacher.full_name}</span>
-                    </label>
-                  ))
-                )}
-              </div>
+              <SearchableMultiSelect
+                options={teachers}
+                selectedValues={formTeacherIds}
+                onChange={setFormTeacherIds}
+                placeholder={t("selectTeachers")}
+                searchPlaceholder={t("searchTeachers")}
+                emptyLabel={t("noData")}
+                getOptionLabel={(teacher) => teacher.full_name}
+              />
             </div>
             <DialogFooter>
               <Button
@@ -374,12 +412,59 @@ const Halaqas = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={examDialogOpen} onOpenChange={setExamDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("raiseNameForExam")}</DialogTitle>
+            <DialogDescription>
+              {t("raiseNameForExamDescription", { name: selectedStudent?.full_name })}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleRaiseForExam} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("fromJuz")}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={examRange.from_juz}
+                  onChange={(event) =>
+                    setExamRange((current) => ({ ...current, from_juz: event.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("toJuz")}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={examRange.to_juz}
+                  onChange={(event) =>
+                    setExamRange((current) => ({ ...current, to_juz: event.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setExamDialogOpen(false)}>
+                {t("cancel")}
+              </Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90">
+                {t("save")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("confirm")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedHalaqa?.name}?
+              {t("deleteHalaqaConfirmation", { name: selectedHalaqa?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

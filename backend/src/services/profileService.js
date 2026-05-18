@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { getCollection } = require("../config/database");
-const { createStaff, createStudent, createTeacher, createUser, publicUser, UserRole } = require("../models");
+const { createExamRequest, createStaff, createStudent, createTeacher, createUser, publicUser, UserRole } = require("../models");
 const { httpError } = require("./authService");
 
 async function createLinkedUser(data, role) {
@@ -32,7 +32,45 @@ async function listStudents(currentUser) {
       (student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : [])).some((id) => halaqaIds.includes(id)),
     );
   }
+  if (currentUser.role === UserRole.EXAM_TEACHER) {
+    const requests = await getCollection("exam_requests").find({ status: "pending" }, { projection: { _id: 0 } }).toArray();
+    const requestByStudent = new Map(requests.map((request) => [request.student_id, request]));
+    if (!requests.length) return [];
+    const students = await getCollection("students").find({ id: { $in: requests.map((request) => request.student_id) } }, { projection: { _id: 0 } }).toArray();
+    return students.map((student) => ({ ...student, exam_request: requestByStudent.get(student.id) }));
+  }
   return getCollection("students").find({}, { projection: { _id: 0 } }).toArray();
+}
+
+async function canAccessStudent(currentUser, studentId) {
+  if ([UserRole.ADMIN, UserRole.STAFF].includes(currentUser.role)) return true;
+  if (currentUser.role === UserRole.STUDENT) {
+    const student = await getCollection("students").findOne({ id: studentId, user_id: currentUser.id }, { projection: { _id: 0 } });
+    return !!student;
+  }
+  if (currentUser.role === UserRole.TEACHER) {
+    const teacher = await getCollection("teachers").findOne({ user_id: currentUser.id }, { projection: { _id: 0 } });
+    if (!teacher) return false;
+    const halaqas = await getCollection("halaqas").find({ teacher_ids: teacher.id }, { projection: { _id: 0 } }).toArray();
+    const halaqaIds = halaqas.map((halaqa) => halaqa.id);
+    const student = await getCollection("students").findOne({ id: studentId }, { projection: { _id: 0 } });
+    return !!student && (student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : [])).some((id) => halaqaIds.includes(id));
+  }
+  if (currentUser.role === UserRole.EXAM_TEACHER) {
+    return !!await getCollection("exam_requests").findOne({ student_id: studentId, status: "pending" }, { projection: { _id: 0 } });
+  }
+  return false;
+}
+
+async function getStudentProfile(id, currentUser) {
+  if (!await canAccessStudent(currentUser, id)) throw httpError(403, "Insufficient permissions");
+  const student = await getCollection("students").findOne({ id }, { projection: { _id: 0 } });
+  if (!student) throw httpError(404, "Student not found");
+  if (currentUser.role === UserRole.EXAM_TEACHER) {
+    const examRequest = await getCollection("exam_requests").findOne({ student_id: id, status: "pending" }, { projection: { _id: 0 } });
+    return { ...student, exam_request: examRequest || null };
+  }
+  return student;
 }
 
 async function createStudentProfile(data) {
@@ -101,8 +139,37 @@ async function listUsers() {
 }
 
 async function updateUserRole(id, role) {
+  if (!Object.values(UserRole).includes(role)) throw httpError(400, "Invalid role");
   const result = await getCollection("users").updateOne({ id }, { $set: { role } });
   if (!result.matchedCount) throw httpError(404, "User not found");
+  if ([UserRole.TEACHER, UserRole.EXAM_TEACHER].includes(role)) {
+    const existingTeacher = await getCollection("teachers").findOne({ user_id: id }, { projection: { _id: 0 } });
+    if (!existingTeacher) {
+      const user = await getCollection("users").findOne({ id }, { projection: { _id: 0 } });
+      await getCollection("teachers").insertOne(createTeacher({
+        full_name: user.full_name,
+        qualification: "",
+        experience_years: 0,
+        email: user.email,
+        user_id: id
+      }));
+    }
+  }
+}
+
+async function raiseStudentForExam(studentId, data, currentUser) {
+  if (![UserRole.ADMIN, UserRole.STAFF, UserRole.TEACHER].includes(currentUser.role)) {
+    throw httpError(403, "Insufficient permissions");
+  }
+  if (currentUser.role === UserRole.TEACHER && !await canAccessStudent(currentUser, studentId)) {
+    throw httpError(403, "Insufficient permissions");
+  }
+  const student = await getCollection("students").findOne({ id: studentId }, { projection: { _id: 0 } });
+  if (!student) throw httpError(404, "Student not found");
+  await getCollection("exam_requests").updateMany({ student_id: studentId, status: "pending" }, { $set: { status: "superseded" } });
+  const request = createExamRequest({ ...data, student_id: studentId }, currentUser.id);
+  await getCollection("exam_requests").insertOne(request);
+  return request;
 }
 
 async function deleteUser(id) {
@@ -121,6 +188,8 @@ module.exports = {
   deleteUser,
   listStudents,
   listUsers,
+  getStudentProfile,
+  raiseStudentForExam,
   updateStaffProfile,
   updateStudentProfile,
   updateTeacherProfile,
