@@ -54,6 +54,7 @@ import {
   FileText,
   Users,
   Loader2,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -258,24 +259,29 @@ const Students = () => {
   return (
     <div className="space-y-6" data-testid="students-page">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
-            {t("students")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {students.length} {t("students")}
-          </p>
-        </div>
-        <div className="flex gap-2">
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/80 text-primary ring-1 ring-primary/15">
+              <Users className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+                {t("students")}
+              </h1>
+              <p className="mt-1 text-base font-medium text-slate-600">
+                {students.length} {t("students")}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
           {canManage() && (
             <>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    className="gap-2 bg-white/85"
                     data-testid="export-btn"
                   >
                     <Download className="h-4 w-4" />
@@ -307,24 +313,25 @@ const Students = () => {
                 className="gap-2 bg-primary hover:bg-primary/90"
                 data-testid="add-student-btn"
               >
-                <Plus className="h-4 w-4" />
+                <UserPlus className="h-4 w-4" />
                 {t("addStudent")}
               </Button>
             </>
           )}
+          </div>
         </div>
       </div>
 
       {/* Search */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="action-strip rounded-lg">
+        <CardContent className="p-4 md:p-5">
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t("search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-10"
+              className="h-12 ps-10"
               data-testid="search-students-input"
             />
           </div>
@@ -332,7 +339,7 @@ const Students = () => {
       </Card>
 
       {/* Table */}
-      <Card>
+      <Card className="soft-panel overflow-hidden rounded-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>

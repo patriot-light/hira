@@ -199,16 +199,21 @@ const Halaqas = () => {
 
   return (
     <div className="space-y-6" data-testid="halaqas-page">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-primary" />
-            {t("halaqas")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {halaqas.length} {t("halaqas")}
-          </p>
-        </div>
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/85 text-primary ring-1 ring-primary/15">
+              <BookOpen className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+                {t("halaqas")}
+              </h1>
+              <p className="mt-1 text-base font-medium text-slate-600">
+                {halaqas.length} {t("halaqas")}
+              </p>
+            </div>
+          </div>
         {canManage() && (
           <Button
             onClick={() => {
@@ -222,17 +227,18 @@ const Halaqas = () => {
             {t("addHalaqa")}
           </Button>
         )}
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
+      <Card className="action-strip rounded-lg">
+        <CardContent className="p-4 md:p-5">
           <div className="relative">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t("search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="ps-10"
+              className="h-12 ps-10"
               data-testid="search-halaqas-input"
             />
           </div>
@@ -250,14 +256,14 @@ const Halaqas = () => {
           filteredHalaqas.map((halaqa) => (
             <Card
               key={halaqa.id}
-              className="card-hover"
+              className="task-tile card-hover"
               data-testid={`halaqa-card-${halaqa.id}`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                      <BookOpen className="h-6 w-6 text-white" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                      <BookOpen className="h-6 w-6" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{halaqa.name}</CardTitle>

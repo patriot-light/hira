@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { reportsAPI, halaqasAPI, sessionsAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
 import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import { 
   Users, 
   GraduationCap, 
@@ -13,7 +15,12 @@ import {
   TrendingUp, 
   Calendar,
   ClipboardCheck,
-  Award
+  Award,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  FileBarChart,
+  PlusCircle
 } from 'lucide-react';
 import {
   AreaChart,
@@ -58,6 +65,41 @@ const Dashboard = () => {
   };
 
   const COLORS = ['#12a89d', '#2ab572', '#d97706', '#ef4444'];
+
+  const quickActions = [
+    {
+      to: "/students",
+      icon: Users,
+      title: t("students"),
+      detail: `${stats?.total_students ?? 0} ${t("students")}`,
+      color: "text-primary bg-primary/10",
+      roles: ["admin", "staff", "teacher", "exam_teacher"],
+    },
+    {
+      to: "/evaluations",
+      icon: ClipboardCheck,
+      title: t("startExam"),
+      detail: t("newExamDescription"),
+      color: "text-secondary bg-secondary/10",
+      roles: ["admin", "staff", "teacher", "exam_teacher"],
+    },
+    {
+      to: "/sessions",
+      icon: Mic2,
+      title: t("addSession"),
+      detail: `${stats?.total_sessions ?? sessions.length} ${t("sessions")}`,
+      color: "text-accent bg-accent/10",
+      roles: ["admin", "staff", "teacher"],
+    },
+    {
+      to: "/reports",
+      icon: FileBarChart,
+      title: t("reports"),
+      detail: t("reportsDescription"),
+      color: "text-sky-600 bg-sky-100",
+      roles: ["admin", "staff", "teacher"],
+    },
+  ].filter((action) => action.roles.includes(user?.role));
 
   const getLevelColor = (level) => {
     switch (level) {
@@ -108,76 +150,162 @@ const Dashboard = () => {
   return (
     <div className="space-y-6" data-testid="dashboard">
       {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            {t('welcomeBack')}, {user?.full_name}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isStudent() 
-              ? t('trackMemorizationProgress')
-              : t('instituteOverview')}
-          </p>
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-stretch">
+          <div className="max-w-3xl">
+            <Badge className="mb-4 bg-white/80 text-primary hover:bg-white/80" variant="outline">
+              <CheckCircle2 className="me-1 h-3.5 w-3.5" />
+              {t(user?.role)}
+            </Badge>
+            <h1 className="text-3xl font-bold leading-tight text-foreground md:text-4xl">
+              {t('welcomeBack')}, {user?.full_name}
+            </h1>
+            <p className="mt-3 text-base font-medium text-slate-600 md:text-lg">
+              {isStudent() 
+                ? t('trackMemorizationProgress')
+                : t('instituteOverview')}
+            </p>
+            {quickActions.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Button asChild className="gap-2">
+                  <Link to={quickActions[0].to}>
+                    <PlusCircle className="h-4 w-4" />
+                    {quickActions[0].title}
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="gap-2 bg-white/80">
+                  <Link to="/halaqas">
+                    <BookOpen className="h-4 w-4" />
+                    {t("halaqas")}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-white/70 bg-white/80 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Calendar className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    {t('todaySchedule')}
+                  </p>
+                  <p className="text-lg font-bold">{sessions.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-white/70 bg-white/80 p-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <Clock3 className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">
+                    {t('recentActivity')}
+                  </p>
+                  <p className="text-lg font-bold">{halaqas.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <Badge variant="outline" className="w-fit capitalize">
-          {t(user?.role)}
-        </Badge>
       </div>
+
+      {quickActions.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {quickActions.map((action) => (
+            <Link
+              key={action.to}
+              to={action.to}
+              className="task-tile group rounded-lg p-5"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className={`flex h-14 w-14 items-center justify-center rounded-lg ${action.color}`}>
+                  <action.icon className="h-6 w-6" />
+                </span>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground transition group-hover:text-primary" />
+              </div>
+              <h3 className="mt-5 text-xl font-bold text-foreground">{action.title}</h3>
+              <p className="mt-2 line-clamp-2 text-sm font-medium text-muted-foreground">
+                {action.detail}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Stats Cards - Bento Grid */}
       {(isAdmin() || isStaff()) && stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="card-hover animate-fade-in stagger-1">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/10">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="metric-card card-hover animate-fade-in stagger-1 border-primary/15">
+            <CardContent className="relative p-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-2xl font-bold">{stats.total_students}</p>
-                  <p className="text-sm text-muted-foreground">{t('students')}</p>
+                  <p className="text-sm font-bold text-muted-foreground">{t('students')}</p>
+                  <p className="mt-2 text-4xl font-bold">{stats.total_students}</p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    {t('active')}
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Users className="h-7 w-7" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="card-hover animate-fade-in stagger-2">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-secondary/10">
-                  <GraduationCap className="h-5 w-5 text-secondary" />
-                </div>
+          <Card className="metric-card card-hover animate-fade-in stagger-2 border-secondary/15">
+            <CardContent className="relative p-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-2xl font-bold">{stats.total_teachers}</p>
-                  <p className="text-sm text-muted-foreground">{t('teachers')}</p>
+                  <p className="text-sm font-bold text-muted-foreground">{t('teachers')}</p>
+                  <p className="mt-2 text-4xl font-bold">{stats.total_teachers}</p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-secondary">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    {t('staff')}
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                  <GraduationCap className="h-7 w-7" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="card-hover animate-fade-in stagger-3">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-accent/10">
-                  <BookOpen className="h-5 w-5 text-accent" />
-                </div>
+          <Card className="metric-card card-hover animate-fade-in stagger-3 border-accent/15">
+            <CardContent className="relative p-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-2xl font-bold">{stats.total_halaqas}</p>
-                  <p className="text-sm text-muted-foreground">{t('halaqas')}</p>
+                  <p className="text-sm font-bold text-muted-foreground">{t('halaqas')}</p>
+                  <p className="mt-2 text-4xl font-bold">{stats.total_halaqas}</p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    {t('schedule')}
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <BookOpen className="h-7 w-7" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="card-hover animate-fade-in stagger-4">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-100">
-                  <Mic2 className="h-5 w-5 text-blue-600" />
-                </div>
+          <Card className="metric-card card-hover animate-fade-in stagger-4 border-sky-200">
+            <CardContent className="relative p-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-2xl font-bold">{stats.total_sessions}</p>
-                  <p className="text-sm text-muted-foreground">{t('sessions')}</p>
+                  <p className="text-sm font-bold text-muted-foreground">{t('sessions')}</p>
+                  <p className="mt-2 text-4xl font-bold">{stats.total_sessions}</p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-sky-600">
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    {t('totalSessions')}
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
+                  <Mic2 className="h-7 w-7" />
                 </div>
               </div>
             </CardContent>
@@ -188,10 +316,12 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Progress Chart - Takes 2 columns */}
-        <Card className="lg:col-span-2 card-hover animate-fade-in">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+        <Card className="soft-panel lg:col-span-2 card-hover animate-fade-in">
+          <CardHeader className="border-b border-border/70">
+            <CardTitle className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <TrendingUp className="h-5 w-5" />
+              </span>
               {t('progressChart')}
             </CardTitle>
           </CardHeader>
@@ -231,10 +361,12 @@ const Dashboard = () => {
 
         {/* Error Breakdown */}
         {errorData.length > 0 && (
-          <Card className="card-hover animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5 text-primary" />
+          <Card className="soft-panel card-hover animate-fade-in">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                  <ClipboardCheck className="h-5 w-5" />
+                </span>
                 {t('errorBreakdown')}
               </CardTitle>
             </CardHeader>
@@ -279,10 +411,12 @@ const Dashboard = () => {
       {/* Halaqas Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Halaqas List */}
-        <Card className="card-hover animate-fade-in">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
+        <Card className="soft-panel card-hover animate-fade-in">
+          <CardHeader className="border-b border-border/70">
+            <CardTitle className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <BookOpen className="h-5 w-5" />
+              </span>
               {isStudent() ? t('myProgress') : t('halaqas')}
             </CardTitle>
           </CardHeader>
@@ -293,10 +427,10 @@ const Dashboard = () => {
               halaqas.slice(0, 4).map((halaqa) => (
                 <div 
                   key={halaqa.id} 
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center">
                       <BookOpen className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -316,10 +450,12 @@ const Dashboard = () => {
         </Card>
 
         {/* Recent Sessions */}
-        <Card className="card-hover animate-fade-in">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mic2 className="h-5 w-5 text-primary" />
+        <Card className="soft-panel card-hover animate-fade-in">
+          <CardHeader className="border-b border-border/70">
+            <CardTitle className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                <Mic2 className="h-5 w-5" />
+              </span>
               {t('recentActivity')}
             </CardTitle>
           </CardHeader>
@@ -330,10 +466,10 @@ const Dashboard = () => {
               sessions.slice(-4).reverse().map((session) => (
                 <div 
                   key={session.id} 
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-lg bg-secondary/10 flex items-center justify-center">
                       <Award className="h-5 w-5 text-secondary" />
                     </div>
                     <div>
@@ -361,7 +497,7 @@ const Dashboard = () => {
       {/* Average Scores */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="card-hover animate-fade-in">
+          <Card className="soft-panel card-hover animate-fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-muted-foreground">
@@ -375,7 +511,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="card-hover animate-fade-in">
+          <Card className="soft-panel card-hover animate-fade-in">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-muted-foreground">

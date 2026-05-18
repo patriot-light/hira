@@ -1,22 +1,21 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import {
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  BookOpen,
-  ClipboardCheck,
-  Mic2,
   AlertCircle,
   BarChart3,
-  Settings,
-  UserCog,
-  X,
-  LogOut,
+  BookOpen,
+  ClipboardCheck,
   Globe,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  Mic2,
+  UserCog,
+  Users,
+  X,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
@@ -24,89 +23,37 @@ import logo from "@/img/logo.png";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
-  const { user, logout, isAdmin, isStudent, canManage } = useAuth();
+  const { user, logout } = useAuth();
   const { language, toggleLanguage, isRTL } = useLanguage();
-  const location = useLocation();
 
   const navItems = [
-    {
-      to: "/dashboard",
-      icon: LayoutDashboard,
-      label: t("dashboard"),
-      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
-    },
-    {
-      to: "/students",
-      icon: Users,
-      label: t("students"),
-      roles: ["admin", "staff", "teacher", "exam_teacher"],
-    },
-    {
-      to: "/teachers",
-      icon: GraduationCap,
-      label: t("teachers"),
-      roles: ["admin", "staff"],
-    },
-    {
-      to: "/halaqas",
-      icon: BookOpen,
-      label: t("halaqas"),
-      roles: ["admin", "staff", "teacher", "student"],
-    },
-    {
-      to: "/evaluations",
-      icon: ClipboardCheck,
-      label: t("evaluations"),
-      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
-    },
-    {
-      to: "/sessions",
-      icon: Mic2,
-      label: t("sessions"),
-      roles: ["admin", "staff", "teacher", "student"],
-    },
-    {
-      to: "/error-types",
-      icon: AlertCircle,
-      label: t("errorTypes"),
-      roles: ["admin", "staff"],
-    },
-    {
-      to: "/reports",
-      icon: BarChart3,
-      label: t("reports"),
-      roles: ["admin", "staff", "teacher"],
-    },
-    {
-      to: "/users",
-      icon: UserCog,
-      label: t("users"),
-      roles: ["admin"],
-    },
+    { to: "/dashboard", icon: LayoutDashboard, label: t("dashboard"), roles: ["admin", "staff", "teacher", "exam_teacher", "student"] },
+    { to: "/students", icon: Users, label: t("students"), roles: ["admin", "staff", "teacher", "exam_teacher"] },
+    { to: "/teachers", icon: GraduationCap, label: t("teachers"), roles: ["admin", "staff"] },
+    { to: "/halaqas", icon: BookOpen, label: t("halaqas"), roles: ["admin", "staff", "teacher", "student"] },
+    { to: "/evaluations", icon: ClipboardCheck, label: t("evaluations"), roles: ["admin", "staff", "teacher", "exam_teacher", "student"] },
+    { to: "/sessions", icon: Mic2, label: t("sessions"), roles: ["admin", "staff", "teacher", "student"] },
+    { to: "/error-types", icon: AlertCircle, label: t("errorTypes"), roles: ["admin", "staff"] },
+    { to: "/reports", icon: BarChart3, label: t("reports"), roles: ["admin", "staff", "teacher"] },
+    { to: "/users", icon: UserCog, label: t("users"), roles: ["admin"] },
   ];
 
   const filteredNavItems = navItems.filter((item) =>
     item.roles.includes(user?.role),
   );
 
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm md:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 h-full w-64 bg-white border-e border-border z-50 flex flex-col transition-transform duration-300",
+          "fixed top-0 z-50 flex h-full w-80 flex-col bg-[hsl(181_56%_18%)] text-white shadow-[24px_0_70px_-42px_rgba(15,23,42,0.95)] transition-transform duration-300",
           isRTL() ? "right-0" : "left-0",
           isOpen
             ? "translate-x-0"
@@ -115,22 +62,24 @@ const Sidebar = ({ isOpen, onClose }) => {
               : "-translate-x-full md:translate-x-0",
         )}
       >
-        {/* Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
-                <img src={logo} alt="Hira Logo" />
+        <div className="flex min-h-28 items-center justify-between border-b border-white/10 px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white shadow-xl">
+              <img src={logo} alt="Hira Logo" className="h-11 w-11 object-contain" />
+            </div>
+            <div className="min-w-0">
+              <span className="block truncate text-xl font-bold">
+                {language === "ar" ? "معهد حراء" : "Hira Institute"}
+              </span>
+              <span className="mt-1 block text-sm font-semibold text-white/70">
+                {t(user?.role)}
               </span>
             </div>
-            <span className="font-bold text-lg text-foreground">
-              {language === "ar" ? "معهد حراء" : "Hira Institute"}
-            </span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="text-white hover:bg-white/10 hover:text-white md:hidden"
             onClick={onClose}
             data-testid="close-sidebar-btn"
           >
@@ -138,62 +87,49 @@ const Sidebar = ({ isOpen, onClose }) => {
           </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <div className="px-5 pt-5">
+          <div className="rounded-lg border border-white/10 bg-white/[0.08] p-4">
+            <p className="text-xs font-bold uppercase text-white/55">{t("welcomeBack")}</p>
+            <p className="mt-1 truncate text-base font-bold">{user?.full_name}</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-2 overflow-y-auto p-5">
           {filteredNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={() => onClose()}
+              onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                  "flex min-h-14 items-center gap-3 rounded-lg px-4 text-sm font-bold transition-all",
                   isActive
-                    ? "bg-primary text-white shadow-md"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-white text-[hsl(181_56%_18%)] shadow-xl"
+                    : "text-white/78 hover:bg-white/10 hover:text-white",
                 )
               }
               data-testid={`nav-${item.to.slice(1)}`}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              <span>{item.label}</span>
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span className="truncate">{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border space-y-2">
-          {/* Language Toggle */}
+        <div className="space-y-3 border-t border-white/10 p-5">
           <Button
             variant="outline"
-            className="w-full justify-start gap-3"
+            className="w-full justify-start border-white/15 bg-white/10 text-white hover:bg-white hover:text-[hsl(181_56%_18%)]"
             onClick={toggleLanguage}
             data-testid="language-toggle-btn"
           >
             <Globe className="h-5 w-5" />
             <span>{language === "en" ? "العربية" : "English"}</span>
           </Button>
-
-          {/* User Info */}
-          <div className="flex items-center gap-3 px-3 py-2 bg-muted rounded-xl">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-primary font-medium text-sm">
-                {user?.full_name?.charAt(0)?.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.full_name}</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {t(user?.role)}
-              </p>
-            </div>
-          </div>
-
-          {/* Logout */}
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleLogout}
+            className="w-full justify-start text-white/80 hover:bg-red-500/15 hover:text-white"
+            onClick={logout}
             data-testid="logout-btn"
           >
             <LogOut className="h-5 w-5" />

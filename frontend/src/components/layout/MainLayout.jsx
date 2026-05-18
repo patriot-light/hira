@@ -10,16 +10,18 @@ const MainLayout = () => {
   const { isRTL } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-background pattern-bg">
+    <div className="app-shell bg-background pattern-bg">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Header onMenuClick={() => setSidebarOpen(true)} />
       
       <main className={cn(
-        "pt-16 min-h-screen transition-all duration-300",
-        isRTL() ? "md:mr-64" : "md:ml-64"
+        "min-h-screen pt-24 transition-all duration-300",
+        isRTL() ? "md:mr-80" : "md:ml-80"
       )}>
-        <div className="p-4 md:p-6 lg:p-8">
-          <Outlet />
+        <div className="page-wrap p-3 md:p-5 lg:p-7">
+          <div className="workspace-stage min-h-[calc(100vh-7rem)] rounded-lg p-4 md:p-6 lg:p-7">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

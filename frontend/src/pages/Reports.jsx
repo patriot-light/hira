@@ -170,19 +170,25 @@ const Reports = () => {
   return (
     <div className="space-y-6" data-testid="reports-page">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-          <BarChart3 className="h-8 w-8 text-primary" />
-          {t('reports')}
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          {t('reportsDescription')}
-        </p>
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/85 text-primary ring-1 ring-primary/15">
+            <BarChart3 className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+              {t('reports')}
+            </h1>
+            <p className="mt-1 text-base font-medium text-slate-600">
+              {t('reportsDescription')}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="student" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-lg">
+        <TabsList className="grid h-auto w-full max-w-2xl grid-cols-1 gap-2 bg-transparent p-0 sm:grid-cols-3">
           <TabsTrigger value="student" className="gap-2">
             <Users className="h-4 w-4" />
             {t('studentReport')}
@@ -199,11 +205,11 @@ const Reports = () => {
 
         {/* Student Report Tab */}
         <TabsContent value="student" className="mt-6 space-y-6">
-          <Card>
+          <Card className="action-strip rounded-lg">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t('studentReport')}</CardTitle>
               {studentReport && (
-                <Button variant="outline" onClick={exportStudentPdf} className="gap-2">
+                <Button variant="outline" onClick={exportStudentPdf} className="gap-2 bg-white/85">
                   <Download className="h-4 w-4" />
                   {t('exportPdf')}
                 </Button>
@@ -229,7 +235,7 @@ const Reports = () => {
             <>
               {/* Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 rounded-xl bg-primary/10">
@@ -243,7 +249,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 rounded-xl bg-secondary/10">
@@ -257,7 +263,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 rounded-xl bg-accent/10">
@@ -271,7 +277,7 @@ const Reports = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 rounded-xl bg-blue-100">
@@ -287,7 +293,7 @@ const Reports = () => {
               </div>
 
               {/* Progress */}
-              <Card>
+              <Card className="soft-panel">
                 <CardHeader>
                   <CardTitle>{t('memorization_progress')}</CardTitle>
                 </CardHeader>
@@ -308,7 +314,7 @@ const Reports = () => {
 
               {/* Error Breakdown */}
               {Object.keys(studentReport.error_breakdown || {}).length > 0 && (
-                <Card>
+                <Card className="soft-panel">
                   <CardHeader>
                     <CardTitle>{t('errorBreakdown')}</CardTitle>
                   </CardHeader>
@@ -346,7 +352,7 @@ const Reports = () => {
 
         {/* Halaqa Report Tab */}
         <TabsContent value="halaqa" className="mt-6 space-y-6">
-          <Card>
+          <Card className="action-strip rounded-lg">
             <CardHeader>
               <CardTitle>{t('halaqaReport')}</CardTitle>
             </CardHeader>
@@ -370,25 +376,25 @@ const Reports = () => {
             <>
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-primary">{halaqaReport.total_students}</p>
                     <p className="text-sm text-muted-foreground">{t('students')}</p>
                   </CardContent>
                 </Card>
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-secondary">{halaqaReport.total_sessions}</p>
                     <p className="text-sm text-muted-foreground">{t('totalSessions')}</p>
                   </CardContent>
                 </Card>
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-accent">{halaqaReport.average_session_score}%</p>
                     <p className="text-sm text-muted-foreground">{t('avgSessionScore')}</p>
                   </CardContent>
                 </Card>
-                <Card className="card-hover">
+                <Card className="task-tile card-hover">
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-blue-600">{halaqaReport.average_page_score}%</p>
                     <p className="text-sm text-muted-foreground">{t('avgPageScore')}</p>
@@ -398,7 +404,7 @@ const Reports = () => {
 
               {/* Student Performance Chart */}
               {halaqaReport.student_performance && halaqaReport.student_performance.length > 0 && (
-                <Card>
+                <Card className="soft-panel">
                   <CardHeader>
                     <CardTitle>{t('studentPerformanceComparison')}</CardTitle>
                   </CardHeader>
@@ -423,7 +429,7 @@ const Reports = () => {
 
         {/* Teacher Report Tab */}
         <TabsContent value="teacher" className="mt-6 space-y-6">
-          <Card>
+          <Card className="action-strip rounded-lg">
             <CardHeader>
               <CardTitle>{t('teacherReport')}</CardTitle>
             </CardHeader>
@@ -445,28 +451,28 @@ const Reports = () => {
 
           {teacherReport && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="card-hover">
+              <Card className="task-tile card-hover">
                 <CardContent className="p-6 text-center">
                   <BookOpen className="h-8 w-8 text-primary mx-auto mb-2" />
                   <p className="text-3xl font-bold">{teacherReport.total_halaqas}</p>
                   <p className="text-sm text-muted-foreground">{t('halaqas')}</p>
                 </CardContent>
               </Card>
-              <Card className="card-hover">
+              <Card className="task-tile card-hover">
                 <CardContent className="p-6 text-center">
                   <Users className="h-8 w-8 text-secondary mx-auto mb-2" />
                   <p className="text-3xl font-bold">{teacherReport.total_students}</p>
                   <p className="text-sm text-muted-foreground">{t('students')}</p>
                 </CardContent>
               </Card>
-              <Card className="card-hover">
+              <Card className="task-tile card-hover">
                 <CardContent className="p-6 text-center">
                   <FileText className="h-8 w-8 text-accent mx-auto mb-2" />
                   <p className="text-3xl font-bold">{teacherReport.total_sessions}</p>
                   <p className="text-sm text-muted-foreground">{t('totalSessions')}</p>
                 </CardContent>
               </Card>
-              <Card className="card-hover">
+              <Card className="task-tile card-hover">
                 <CardContent className="p-6 text-center">
                   <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <p className="text-3xl font-bold">{teacherReport.average_student_score}%</p>

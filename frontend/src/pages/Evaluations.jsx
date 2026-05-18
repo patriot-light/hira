@@ -261,16 +261,21 @@ const Evaluations = () => {
 
   return (
     <div className="space-y-6" data-testid="evaluations-page">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <ClipboardCheck className="h-8 w-8 text-primary" />
-            {t("evaluations")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {evaluations.length} {t("savedExams")}
-          </p>
-        </div>
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/80 text-primary ring-1 ring-primary/15">
+              <ClipboardCheck className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+                {t("evaluations")}
+              </h1>
+              <p className="mt-1 text-base font-medium text-slate-600">
+                {evaluations.length} {t("savedExams")}
+              </p>
+            </div>
+          </div>
         {canEvaluate() && (
           <Button
             onClick={() => {
@@ -284,11 +289,17 @@ const Evaluations = () => {
             {t("startExam")}
           </Button>
         )}
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("examResults")}</CardTitle>
+      <Card className="soft-panel overflow-hidden rounded-lg">
+        <CardHeader className="border-b border-border/70">
+          <CardTitle className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileText className="h-5 w-5" />
+            </span>
+            {t("examResults")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -491,7 +502,7 @@ const Evaluations = () => {
                 </div>
               </div>
 
-              <div className="rounded-md border bg-muted/30 p-4">
+              <div className="rounded-lg border border-primary/20 bg-primary/[0.07] p-4">
                 <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
                 <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
                 <Badge className={`${getScoreColor(liveScore)} mt-3`}>
