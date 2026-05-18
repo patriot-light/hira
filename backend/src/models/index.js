@@ -233,6 +233,44 @@ function createSession(data) {
   return { id: uuid(), ...data, errors, date: now(), total_pages, total_errors, total_penalty, final_score, result };
 }
 
+function createCertificateTemplate(data, createdBy) {
+  required(data, ["name", "background_image", "width", "height"]);
+  const fields = Array.isArray(data.fields) ? data.fields : [];
+  if (!fields.length) {
+    const error = new Error("At least one certificate field is required");
+    error.status = 400;
+    throw error;
+  }
+  return {
+    id: uuid(),
+    name: data.name,
+    background_image: data.background_image,
+    width: Number(data.width),
+    height: Number(data.height),
+    fields,
+    created_by: createdBy || null,
+    created_at: now(),
+    updated_at: now()
+  };
+}
+
+function createIssuedCertificate(data, issuedBy) {
+  required(data, ["template_id", "student_name", "degree", "issue_date"]);
+  return {
+    id: uuid(),
+    template_id: data.template_id,
+    student_id: data.student_id || null,
+    student_name: data.student_name,
+    degree: data.degree,
+    issue_date: data.issue_date,
+    custom_fields: data.custom_fields || {},
+    certificate_number: data.certificate_number || `CERT-${Date.now()}`,
+    template_snapshot: data.template_snapshot || null,
+    issued_by: issuedBy || null,
+    issued_at: now()
+  };
+}
+
 module.exports = {
   EvaluationResult,
   HalaqaLevel,
@@ -245,6 +283,8 @@ module.exports = {
   createJuzEvaluation,
   createPageEvaluation,
   createSession,
+  createCertificateTemplate,
+  createIssuedCertificate,
   createStaff,
   createStudent,
   createTeacher,

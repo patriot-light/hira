@@ -21,6 +21,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import ErrorTypes from "./pages/ErrorTypes";
 import EvaluationDetails from "./pages/EvaluationDetails";
+import Certificates from "./pages/Certificates";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -121,6 +122,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["admin", "staff", "teacher"]}>
               <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="certificates"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Certificates />
             </ProtectedRoute>
           }
         />

@@ -266,3 +266,60 @@ test("exports return binary files", async () => {
   assert.equal(pdf.status, 200);
   assert.match(pdf.headers["content-type"], /pdf/);
 });
+
+test("admins can design and issue certificate PDFs", async () => {
+  const background =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+
+  const template = await auth(api.post("/api/certificates/templates")).send({
+    name: "Completion certificate",
+    background_image: background,
+    width: 600,
+    height: 400,
+    fields: [
+      { key: "studentName", x: 0.5, y: 0.4, width: 0.6, fontSize: 32, color: "#111827", align: "center", fontWeight: "bold" },
+      { key: "degree", x: 0.5, y: 0.55, width: 0.6, fontSize: 22, color: "#334155", align: "center" },
+      { key: "issueDate", x: 0.5, y: 0.7, width: 0.35, fontSize: 16, color: "#334155", align: "center" },
+      { key: "custom_teacher", label: "Teacher", x: 0.5, y: 0.8, width: 0.45, fontSize: 16, color: "#334155", align: "center" }
+    ]
+  });
+  assert.equal(template.status, 200);
+  assert.equal(template.body.fields.length, 4);
+
+  const certificate = await auth(api.post("/api/certificates/issued")).send({
+    template_id: template.body.id,
+    student_name: "الطالب المجتهد",
+    degree: "إتمام جزء عم",
+    issue_date: "2026-05-18",
+    custom_fields: {
+      custom_teacher: "الشيخ أحمد"
+    }
+  });
+  assert.equal(certificate.status, 200);
+  assert.match(certificate.body.certificate_number, /^CERT-/);
+  assert.equal(certificate.body.custom_fields.custom_teacher, "الشيخ أحمد");
+
+  const pdf = await auth(api.get(`/api/certificates/issued/${certificate.body.id}/pdf`));
+  assert.equal(pdf.status, 200);
+  assert.match(pdf.headers["content-type"], /pdf/);
+
+  const deleteTemplate = await auth(api.delete(`/api/certificates/templates/${template.body.id}`));
+  assert.equal(deleteTemplate.status, 200);
+
+  const pdfAfterDelete = await auth(api.get(`/api/certificates/issued/${certificate.body.id}/pdf`));
+  assert.equal(pdfAfterDelete.status, 200);
+  assert.match(pdfAfterDelete.headers["content-type"], /pdf/);
+
+  const studentUser = await api.post("/api/auth/register").send({
+    email: "certificate-student@hira.edu",
+    password: "student123",
+    full_name: "Certificate Locked Student",
+    role: "student"
+  });
+  assert.equal(studentUser.status, 200);
+
+  const forbidden = await api
+    .get("/api/certificates/templates")
+    .set("Authorization", `Bearer ${studentUser.body.access_token}`);
+  assert.equal(forbidden.status, 403);
+});

@@ -866,8 +866,12 @@ const babelMetadataPlugin = ({ types: t }) => {
           }
           if (!localName) return;
 
-          // Search for usages of this component
-          importPath.parentPath.parentPath.traverse({
+          // Search for usages of this component from the program root. Import
+          // declarations can sit directly under Program, where parentPath.parentPath
+          // is null in current Babel versions.
+          const programPath = importPath.findParent((parent) => parent.isProgram());
+          if (!programPath) return;
+          programPath.traverse({
             JSXOpeningElement(jsxPath) {
               if (result) return;
 

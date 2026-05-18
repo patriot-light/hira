@@ -148,4 +148,16 @@ export const exportAPI = {
     api.get(`/export/report/${studentId}/pdf`, { responseType: "blob" }),
 };
 
+// Certificates API
+export const certificatesAPI = {
+  getTemplates: () => api.get("/certificates/templates"),
+  createTemplate: (data) => api.post("/certificates/templates", data),
+  updateTemplate: (id, data) => api.put(`/certificates/templates/${id}`, data),
+  deleteTemplate: (id) => api.delete(`/certificates/templates/${id}`),
+  getIssued: () => api.get("/certificates/issued"),
+  issue: (data) => api.post("/certificates/issued", data),
+  downloadPdf: (id) =>
+    api.get(`/certificates/issued/${id}/pdf`, { responseType: "blob" }),
+};
+
 export default api;

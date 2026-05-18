@@ -13,7 +13,7 @@ const app = express();
 const corsOrigins = (process.env.CORS_ORIGINS || "*").split(",").map((origin) => origin.trim());
 app.use(cors({ origin: corsOrigins.includes("*") ? true : corsOrigins, credentials: true }));
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "12mb" }));
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
@@ -28,6 +28,7 @@ app.use("/api/evaluations", require("./routes/evaluationsRoutes"));
 app.use("/api/sessions", require("./routes/sessionsRoutes"));
 app.use("/api/reports", require("./routes/reportsRoutes"));
 app.use("/api/export", require("./routes/exportRoutes"));
+app.use("/api/certificates", require("./routes/certificatesRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);

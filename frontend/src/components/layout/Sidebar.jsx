@@ -35,6 +35,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: "/sessions", icon: Mic2, label: t("sessions"), roles: ["admin", "staff", "teacher", "student"] },
     { to: "/error-types", icon: AlertCircle, label: t("errorTypes"), roles: ["admin", "staff"] },
     { to: "/reports", icon: BarChart3, label: t("reports"), roles: ["admin", "staff", "teacher"] },
+    { to: "/certificates", icon: ClipboardCheck, label: t("certificates"), roles: ["admin"] },
     { to: "/users", icon: UserCog, label: t("users"), roles: ["admin"] },
   ];
 
