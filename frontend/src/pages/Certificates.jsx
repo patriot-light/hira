@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   Award,
@@ -35,10 +36,10 @@ import {
 } from "../components/ui/table";
 
 const FIELD_OPTIONS = [
-  { key: "studentName", label: "Student name", sample: "Aisha Rahman" },
-  { key: "degree", label: "Degree", sample: "Certificate of Excellence" },
-  { key: "issueDate", label: "Issue date", sample: new Date().toISOString().slice(0, 10) },
-  { key: "certificateNumber", label: "Certificate number", sample: "CERT-0001" },
+  { key: "studentName", labelKey: "studentName", sample: "Aisha Rahman" },
+  { key: "degree", labelKey: "degree", sample: "Certificate of Excellence" },
+  { key: "issueDate", labelKey: "issueDate", sample: new Date().toISOString().slice(0, 10) },
+  { key: "certificateNumber", labelKey: "certificateNumber", sample: "CERT-0001" },
 ];
 
 const CORE_FIELD_KEYS = ["studentName", "degree", "issueDate", "certificateNumber"];
@@ -90,6 +91,7 @@ function downloadBlob(response, filename) {
 }
 
 const Certificates = () => {
+  const { t, i18n } = useTranslation();
   const editorRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,11 +139,11 @@ const Certificates = () => {
         setIssueForm((current) => ({ ...current, template_id: templateRes.data[0].id, custom_fields: customFields }));
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Could not load certificates");
+      toast.error(error.response?.data?.detail || t("couldNotLoadCertificates"));
     } finally {
       setLoading(false);
     }
-  }, [issueForm.template_id]);
+  }, [issueForm.template_id, t]);
 
   useEffect(() => {
     fetchData();
@@ -211,7 +213,7 @@ const Certificates = () => {
         height: image.height,
       }));
     } catch (error) {
-      toast.error("Upload a valid PNG or JPEG certificate image");
+      toast.error(t("validCertificateImageRequired"));
     }
   };
 
@@ -227,7 +229,7 @@ const Certificates = () => {
         ...current.fields,
         {
           key,
-          label: option?.label || key,
+          label: option ? t(option.labelKey) : key,
           x: 0.5,
           y: 0.5,
           width: 0.34,
@@ -243,7 +245,7 @@ const Certificates = () => {
 
   const addCustomField = () => {
     if (!customFieldName.trim()) {
-      toast.error("Enter a field name first");
+      toast.error(t("enterFieldNameFirst"));
       return;
     }
     const field = createCustomField(customFieldName);
@@ -291,7 +293,7 @@ const Certificates = () => {
 
   const saveTemplate = async () => {
     if (!templateForm.name || !templateForm.background_image || !templateForm.fields.length) {
-      toast.error("Add a name, image, and at least one placeholder");
+      toast.error(t("certificateTemplateValidation"));
       return;
     }
     setSaving(true);
@@ -305,15 +307,15 @@ const Certificates = () => {
       };
       if (templateForm.id) {
         await certificatesAPI.updateTemplate(templateForm.id, payload);
-        toast.success("Certificate template updated");
+        toast.success(t("certificateTemplateUpdated"));
       } else {
         await certificatesAPI.createTemplate(payload);
-        toast.success("Certificate template saved");
+        toast.success(t("certificateTemplateSaved"));
       }
       resetTemplateForm();
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Could not save template");
+      toast.error(error.response?.data?.detail || t("couldNotSaveTemplate"));
     } finally {
       setSaving(false);
     }
@@ -322,11 +324,11 @@ const Certificates = () => {
   const deleteTemplate = async (template) => {
     try {
       await certificatesAPI.deleteTemplate(template.id);
-      toast.success("Certificate template deleted");
+      toast.success(t("certificateTemplateDeleted"));
       if (templateForm.id === template.id) resetTemplateForm();
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Could not delete template");
+      toast.error(error.response?.data?.detail || t("couldNotDeleteTemplate"));
     }
   };
 
@@ -367,7 +369,7 @@ const Certificates = () => {
     event.preventDefault();
     try {
       const response = await certificatesAPI.issue(issueForm);
-      toast.success("Certificate issued");
+      toast.success(t("certificateIssued"));
       const pdf = await certificatesAPI.downloadPdf(response.data.id);
       downloadBlob(pdf, `${response.data.certificate_number}.pdf`);
       setIssueForm((current) => ({
@@ -380,7 +382,7 @@ const Certificates = () => {
       }));
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Could not issue certificate");
+      toast.error(error.response?.data?.detail || t("couldNotIssueCertificate"));
     }
   };
 
@@ -389,7 +391,7 @@ const Certificates = () => {
       const response = await certificatesAPI.downloadPdf(certificate.id);
       downloadBlob(response, `${certificate.certificate_number}.pdf`);
     } catch (error) {
-      toast.error("Could not download certificate");
+      toast.error(t("couldNotDownloadCertificate"));
     }
   };
 
@@ -402,7 +404,7 @@ const Certificates = () => {
   }
 
   return (
-    <div className="space-y-6" dir="ltr" data-testid="certificates-page">
+    <div className="space-y-6" dir={i18n.dir()} data-testid="certificates-page">
       <div className="page-hero rounded-lg p-5 md:p-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
@@ -410,13 +412,13 @@ const Certificates = () => {
               <Award className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground md:text-4xl">Certificates</h1>
-              <p className="mt-1 text-base font-medium text-slate-600">Admin template designer and issuing desk</p>
+              <h1 className="text-3xl font-bold text-foreground md:text-4xl">{t("certificates")}</h1>
+              <p className="mt-1 text-base font-medium text-slate-600">{t("certificatesDescription")}</p>
             </div>
           </div>
           <Button variant="outline" className="gap-2 bg-white/85" onClick={resetTemplateForm}>
             <Plus className="h-4 w-4" />
-            New template
+            {t("newTemplate")}
           </Button>
         </div>
       </div>
@@ -426,11 +428,11 @@ const Certificates = () => {
           <CardHeader className="space-y-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
-                <CardTitle>Template editor</CardTitle>
+                <CardTitle>{t("templateEditor")}</CardTitle>
                 <Input
                   value={templateForm.name}
                   onChange={(event) => setTemplateForm((current) => ({ ...current, name: event.target.value }))}
-                  placeholder="Template name"
+                  placeholder={t("templateName")}
                   className="h-11 max-w-md"
                   data-testid="certificate-template-name"
                 />
@@ -438,18 +440,18 @@ const Certificates = () => {
               <div className="flex flex-wrap gap-2">
                 <Label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border bg-background px-4 text-sm font-bold">
                   <Upload className="h-4 w-4" />
-                  Upload image
+                  {t("uploadImage")}
                   <Input className="hidden" type="file" accept="image/png,image/jpeg" onChange={handleImageUpload} />
                 </Label>
                 <Select value={activeFieldKey} onValueChange={addField}>
                   <SelectTrigger className="h-10 w-44">
                     <Type className="me-2 h-4 w-4" />
-                    <SelectValue placeholder="Add field" />
+                    <SelectValue placeholder={t("addField")} />
                   </SelectTrigger>
                   <SelectContent>
                     {FIELD_OPTIONS.map((field) => (
                       <SelectItem key={field.key} value={field.key}>
-                        {field.label}
+                        {t(field.labelKey)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -458,7 +460,7 @@ const Certificates = () => {
                   <Input
                     value={customFieldName}
                     onChange={(event) => setCustomFieldName(event.target.value)}
-                    placeholder="Custom field"
+                    placeholder={t("customField")}
                     className="h-10 w-40"
                     onKeyDown={(event) => {
                       if (event.key === "Enter") {
@@ -469,12 +471,12 @@ const Certificates = () => {
                   />
                   <Button type="button" variant="outline" className="h-10 gap-2" onClick={addCustomField}>
                     <Plus className="h-4 w-4" />
-                    Field
+                    {t("field")}
                   </Button>
                 </div>
                 <Button className="gap-2" onClick={saveTemplate} disabled={saving}>
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Save
+                  {t("save")}
                 </Button>
               </div>
             </div>
@@ -502,7 +504,7 @@ const Certificates = () => {
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-slate-500">
                   <Upload className="h-10 w-10" />
-                  <span className="text-sm font-semibold">Upload a PNG or JPEG certificate background</span>
+                  <span className="text-sm font-semibold">{t("uploadCertificateBackground")}</span>
                 </div>
               )}
               {templateForm.background_image && templateForm.fields.map((field) => (
@@ -552,27 +554,27 @@ const Certificates = () => {
             {activeField && (
               <div className="grid gap-4 rounded-lg border bg-background p-4 md:grid-cols-6">
                 <div className="space-y-2">
-                  <Label>Field label</Label>
+                  <Label>{t("fieldLabel")}</Label>
                   <Input
-                    value={activeField.label}
+                    value={CORE_FIELD_KEYS.includes(activeField.key) ? t(FIELD_OPTIONS.find((field) => field.key === activeField.key)?.labelKey || activeField.label) : activeField.label}
                     onChange={(event) => updateField(activeField.key, { label: event.target.value })}
                     disabled={CORE_FIELD_KEYS.includes(activeField.key)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Font size</Label>
+                  <Label>{t("fontSize")}</Label>
                   <Input type="number" min="8" max="96" value={activeField.fontSize} onChange={(event) => updateField(activeField.key, { fontSize: Number(event.target.value) })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Width %</Label>
+                  <Label>{t("widthPercent")}</Label>
                   <Input type="number" min="5" max="100" value={Math.round(activeField.width * 100)} onChange={(event) => updateField(activeField.key, { width: Number(event.target.value) / 100 })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Color</Label>
+                  <Label>{t("color")}</Label>
                   <Input type="color" value={activeField.color} onChange={(event) => updateField(activeField.key, { color: event.target.value })} />
                 </div>
                 <div className="flex items-end gap-2">
-                  <Button type="button" variant="outline" size="icon" title="Drag the field on the certificate">
+                  <Button type="button" variant="outline" size="icon" title={t("dragFieldOnCertificate")}>
                     <Move className="h-4 w-4" />
                   </Button>
                   <Button
@@ -594,15 +596,15 @@ const Certificates = () => {
         <div className="space-y-6">
           <Card className="rounded-lg">
             <CardHeader>
-              <CardTitle>Issue certificate</CardTitle>
+              <CardTitle>{t("issueCertificate")}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={issueCertificate} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Template</Label>
+                  <Label>{t("template")}</Label>
                   <Select value={issueForm.template_id} onValueChange={selectIssueTemplate}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select template" />
+                      <SelectValue placeholder={t("selectTemplate")} />
                     </SelectTrigger>
                     <SelectContent>
                       {templates.map((template) => (
@@ -614,10 +616,10 @@ const Certificates = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Student</Label>
+                  <Label>{t("student")}</Label>
                   <Select value={issueForm.student_id} onValueChange={selectStudent}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select or type below" />
+                      <SelectValue placeholder={t("selectOrTypeBelow")} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((student) => (
@@ -629,15 +631,15 @@ const Certificates = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Student name</Label>
+                  <Label>{t("studentName")}</Label>
                   <Input required dir="auto" value={issueForm.student_name} onChange={(event) => setIssueForm((current) => ({ ...current, student_name: event.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Degree</Label>
+                  <Label>{t("degree")}</Label>
                   <Input required dir="auto" value={issueForm.degree} onChange={(event) => setIssueForm((current) => ({ ...current, degree: event.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Date</Label>
+                  <Label>{t("date")}</Label>
                   <Input type="date" required value={issueForm.issue_date} onChange={(event) => setIssueForm((current) => ({ ...current, issue_date: event.target.value }))} />
                 </div>
                 {issueCustomFields.map((field) => (
@@ -652,7 +654,7 @@ const Certificates = () => {
                 ))}
                 <Button type="submit" className="w-full gap-2" disabled={!templates.length}>
                   <FileText className="h-4 w-4" />
-                  Issue and download
+                  {t("issueAndDownload")}
                 </Button>
               </form>
             </CardContent>
@@ -660,17 +662,17 @@ const Certificates = () => {
 
           <Card className="rounded-lg">
             <CardHeader>
-              <CardTitle>Saved templates</CardTitle>
+              <CardTitle>{t("savedTemplates")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {templates.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No certificate templates yet.</p>
+                <p className="text-sm text-muted-foreground">{t("noCertificateTemplates")}</p>
               ) : (
                 templates.map((template) => (
                   <div key={template.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                     <button type="button" className="min-w-0 text-start" onClick={() => editTemplate(template)}>
                       <span className="block truncate text-sm font-bold">{template.name}</span>
-                      <span className="text-xs text-muted-foreground">{template.fields?.length || 0} fields</span>
+                      <span className="text-xs text-muted-foreground">{t("fieldsCount", { count: template.fields?.length || 0 })}</span>
                     </button>
                     <Button variant="ghost" size="icon" onClick={() => deleteTemplate(template)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -685,25 +687,25 @@ const Certificates = () => {
 
       <Card className="rounded-lg">
         <CardHeader>
-          <CardTitle>Issued certificates</CardTitle>
+          <CardTitle>{t("issuedCertificates")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Degree</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Number</TableHead>
-                  <TableHead className="w-12">PDF</TableHead>
+                  <TableHead>{t("student")}</TableHead>
+                  <TableHead>{t("degree")}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("number")}</TableHead>
+                  <TableHead className="w-12">{t("pdf")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {issued.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                      No issued certificates yet.
+                      {t("noIssuedCertificates")}
                     </TableCell>
                   </TableRow>
                 ) : (

@@ -53,6 +53,10 @@ function mapCertificateValues(certificate) {
   };
 }
 
+function containsArabic(text) {
+  return /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/.test(text);
+}
+
 function getWindowsFont(name) {
   const fontPath = path.join("C:\\Windows\\Fonts", name);
   return fs.existsSync(fontPath) ? fontPath : null;
@@ -72,6 +76,42 @@ function registerCertificateFonts(doc) {
 function imageBufferFromDataUrl(dataUrl) {
   const [, base64] = dataUrl.split(",");
   return Buffer.from(base64, "base64");
+}
+
+function getAlignedTextStart(doc, text, x, width, align) {
+  if (align === "right") return x + width - doc.widthOfString(text);
+  if (align === "center") return x + (width - doc.widthOfString(text)) / 2;
+  return x;
+}
+
+function drawArabicText(doc, text, x, y, options) {
+  const lines = text.split(/\r?\n/);
+  const lineHeight = doc.currentLineHeight();
+
+  lines.forEach((line, index) => {
+    const tokens = line.match(/\S+|\s+/g) || [""];
+    const lineWidth = tokens.reduce((sum, token) => sum + doc.widthOfString(token), 0);
+    let cursor = getAlignedTextStart(doc, line, x, options.width, options.align) + lineWidth;
+    const lineY = y + index * lineHeight;
+
+    tokens.forEach((token) => {
+      const tokenWidth = doc.widthOfString(token);
+      cursor -= tokenWidth;
+      if (token.trim()) {
+        doc.text(token, cursor, lineY, { lineBreak: false });
+      }
+    });
+  });
+}
+
+function drawCertificateText(doc, value, x, y, options) {
+  const text = String(value || "");
+  if (!text) return;
+  if (containsArabic(text)) {
+    drawArabicText(doc, text, x, y, options);
+  } else {
+    doc.text(text, x, y, options);
+  }
 }
 
 async function listTemplates() {
@@ -170,8 +210,8 @@ async function renderCertificatePdf(id) {
     doc
       .fillColor(field.color || "#111827")
       .font(field.fontWeight === "bold" ? fonts.bold : fonts.regular)
-      .fontSize(field.fontSize || 28)
-      .text(value, x - width / 2, y, { width, align: field.align || "center" });
+      .fontSize(field.fontSize || 28);
+    drawCertificateText(doc, value, x - width / 2, y, { width, align: field.align || "center" });
   }
 
   doc.end();
