@@ -55,10 +55,10 @@ router.post("/issued", async (req, res, next) => {
 
 router.get("/issued/:id/pdf", async (req, res, next) => {
   try {
-    const { doc, filename } = await service.renderCertificatePdf(req.params.id);
+    const { buffer, filename } = await service.renderCertificatePdf(req.params.id);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    doc.pipe(res);
+    res.end(buffer);
   } catch (error) {
     next(error);
   }
