@@ -83,16 +83,16 @@ test("student, teacher, halaqa, session, and reports flow", async () => {
     duration_minutes: 45,
     from_page: 1,
     to_page: 3,
-    errors: [{
-      error_type_id: sharedErrorTypes.body[0].id,
-      name: sharedErrorTypes.body[0].name,
-      page_number: 1,
-      deduction: 2
-    }]
+    page_ratings: [
+      { page_number: 1, rating: "excellent" },
+      { page_number: 2, rating: "very_good" },
+      { page_number: 3, rating: "outstanding" }
+    ]
   });
   assert.equal(session.status, 200);
   assert.equal(session.body.total_pages, 3);
-  assert.equal(session.body.final_score, 98);
+  assert.equal(session.body.final_score, 95);
+  assert.equal(session.body.total_errors, 0);
 
   const dashboard = await auth(api.get("/api/reports/dashboard"));
   assert.equal(dashboard.status, 200);

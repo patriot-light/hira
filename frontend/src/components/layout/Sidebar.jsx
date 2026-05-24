@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import {
-  AlertCircle,
   BarChart3,
   BookOpen,
   ClipboardCheck,
@@ -13,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mic2,
+  Settings,
   UserCog,
   Users,
   X,
@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: "/halaqas", icon: BookOpen, label: t("halaqas"), roles: ["admin", "staff", "teacher", "student"] },
     { to: "/evaluations", icon: ClipboardCheck, label: t("evaluations"), roles: ["admin", "staff", "teacher", "exam_teacher", "student"] },
     { to: "/sessions", icon: Mic2, label: t("sessions"), roles: ["admin", "staff", "teacher", "student"] },
-    { to: "/error-types", icon: AlertCircle, label: t("errorTypes"), roles: ["admin", "staff"] },
+    { to: "/configuration", icon: Settings, label: t("configuration"), roles: ["admin", "staff"] },
     { to: "/reports", icon: BarChart3, label: t("reports"), roles: ["admin", "staff", "teacher"] },
     { to: "/certificates", icon: ClipboardCheck, label: t("certificates"), roles: ["admin"] },
     { to: "/users", icon: UserCog, label: t("users"), roles: ["admin"] },

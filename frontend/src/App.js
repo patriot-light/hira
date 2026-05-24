@@ -12,16 +12,23 @@ import MainLayout from "./components/layout/MainLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
+import StudentForm from "./pages/StudentForm";
+import StudentDetails from "./pages/StudentDetails";
 import Teachers from "./pages/Teachers";
+import TeacherForm from "./pages/TeacherForm";
 import Halaqas from "./pages/Halaqas";
+import HalaqaForm from "./pages/HalaqaForm";
+import HalaqaDetails from "./pages/HalaqaDetails";
 import Evaluations from "./pages/Evaluations";
 import Sessions from "./pages/Sessions";
 import SessionDetails from "./pages/SessionDetails";
+import SessionForm from "./pages/SessionForm";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
-import ErrorTypes from "./pages/ErrorTypes";
 import EvaluationDetails from "./pages/EvaluationDetails";
+import EvaluationForm from "./pages/EvaluationForm";
 import Certificates from "./pages/Certificates";
+import Configuration from "./pages/Configuration";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -97,6 +104,30 @@ function AppRoutes() {
           }
         />
         <Route
+          path="students/new"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <StudentForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="students/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <StudentForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="students/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "student"]}>
+              <StudentDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="teachers"
           element={
             <ProtectedRoute allowedRoles={["admin", "staff"]}>
@@ -104,16 +135,59 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="teachers/new"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <TeacherForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="teachers/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <TeacherForm />
+            </ProtectedRoute>
+          }
+        />
         <Route path="halaqas" element={<Halaqas />} />
+        <Route
+          path="halaqas/new"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <HalaqaForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="halaqas/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <HalaqaForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="halaqas/:id" element={<HalaqaDetails />} />
         <Route path="evaluations" element={<Evaluations />} />
+        <Route path="evaluations/new" element={<EvaluationForm />} />
         <Route path="evaluations/:id" element={<EvaluationDetails />} />
         <Route path="sessions" element={<Sessions />} />
+        <Route path="sessions/new" element={<SessionForm />} />
         <Route path="sessions/:id" element={<SessionDetails />} />
+        <Route
+          path="configuration"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <Configuration />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="error-types"
           element={
             <ProtectedRoute allowedRoles={["admin", "staff"]}>
-              <ErrorTypes />
+              <Navigate to="/configuration" replace />
             </ProtectedRoute>
           }
         />

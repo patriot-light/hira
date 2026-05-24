@@ -76,6 +76,7 @@ const Students = () => {
     age: "",
     national_id: "",
     phone: "",
+    parent_phone: "",
     email: "",
     password: "",
     status: "active",
@@ -148,6 +149,7 @@ const Students = () => {
       age: student.age?.toString() || "",
       national_id: student.national_id || "",
       phone: student.phone || "",
+      parent_phone: student.parent_phone || "",
       email: student.email || "",
       password: "",
       status: student.status || "active",
@@ -164,6 +166,7 @@ const Students = () => {
       age: "",
       national_id: "",
       phone: "",
+      parent_phone: "",
       email: "",
       password: "",
       status: "active",
@@ -175,7 +178,7 @@ const Students = () => {
   const canRaiseForExam = () => canManage() || isTeacher();
 
   const openExamEvaluation = (student) => {
-    navigate(`/evaluations?exam=1&student_id=${student.id}`);
+    navigate(`/evaluations/new?student_id=${student.id}`);
   };
 
   const openExamDialog = (student) => {
@@ -306,10 +309,7 @@ const Students = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button
-                onClick={() => {
-                  resetForm();
-                  setDialogOpen(true);
-                }}
+                onClick={() => navigate("/students/new")}
                 className="gap-2 bg-primary hover:bg-primary/90"
                 data-testid="add-student-btn"
               >
@@ -376,7 +376,13 @@ const Students = () => {
                       data-testid={`student-row-${student.id}`}
                     >
                       <TableCell className="font-medium">
-                        {student.full_name}
+                        <button
+                          type="button"
+                          className="text-start font-semibold text-primary hover:underline"
+                          onClick={() => navigate(`/students/${student.id}`)}
+                        >
+                          {student.full_name}
+                        </button>
                       </TableCell>
                       <TableCell>{student.age}</TableCell>
                       <TableCell className="hidden md:table-cell">
@@ -429,7 +435,7 @@ const Students = () => {
                               {canManage() && (
                                 <>
                                   <DropdownMenuItem
-                                    onClick={() => handleEdit(student)}
+                                    onClick={() => navigate(`/students/${student.id}/edit`)}
                                   >
                                     <Edit className="h-4 w-4 me-2" />
                                     {t("edit")}
@@ -539,6 +545,17 @@ const Students = () => {
                     setFormData({ ...formData, phone: e.target.value })
                   }
                   data-testid="student-phone-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="parent_phone">{t("parentPhone")}</Label>
+                <Input
+                  id="parent_phone"
+                  value={formData.parent_phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_phone: e.target.value })
+                  }
+                  data-testid="student-parent-phone-input"
                 />
               </div>
               <div className="space-y-2">

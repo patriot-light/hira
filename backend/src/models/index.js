@@ -65,6 +65,7 @@ function createStudent(data) {
     age: data.age,
     national_id: data.national_id || null,
     phone: data.phone || null,
+    parent_phone: data.parent_phone || null,
     email: data.email || null,
     status: data.status || StudentStatus.ACTIVE,
     halaqa_id: halaqa_ids[0] || null,
@@ -107,8 +108,22 @@ function createHalaqa(data) {
     id: uuid(),
     name: data.name,
     level: data.level || HalaqaLevel.BEGINNER,
+    type_id: data.type_id || null,
+    gender: data.gender || null,
+    attendance_mode: data.attendance_mode || null,
     teacher_ids: data.teacher_ids || [],
     schedule: data.schedule || [],
+    created_at: now()
+  };
+}
+
+function createHalaqaType(data) {
+  required(data, ["name"]);
+  return {
+    id: uuid(),
+    name: data.name,
+    description: data.description || null,
+    is_active: data.is_active ?? true,
     created_at: now()
   };
 }
@@ -212,25 +227,38 @@ function createExamRequest(data, raisedBy) {
 
 function createSession(data) {
   required(data, ["student_id", "teacher_id", "duration_minutes", "from_page", "to_page"]);
-  const errors = (data.errors || []).map((error) => ({
-    id: error.id || uuid(),
-    error_type_id: error.error_type_id || null,
-    category: error.category || error.name || "error",
-    description: error.description || error.name || null,
-    name: error.name || error.description || error.category || "Error",
-    penalty: Number(error.penalty ?? error.deduction ?? 1),
-    page_number: error.page_number,
-    word: error.word || "",
+  const ratingScores = {
+    acceptable: 70,
+    good: 80,
+    very_good: 90,
+    excellent: 95,
+    outstanding: 100
+  };
+  const page_ratings = (data.page_ratings || []).map((rating) => ({
+    page_number: Number(rating.page_number),
+    rating: rating.rating,
+    score: ratingScores[rating.rating] || Number(rating.score || 0)
   }));
   const total_pages = Math.abs(data.to_page - data.from_page) + 1;
-  const total_errors = errors.length;
-  const total_penalty = errors.reduce((sum, error) => sum + Number(error.penalty || 0), 0);
-  const final_score = Math.max(0, 100 - total_penalty);
+  const final_score = page_ratings.length
+    ? page_ratings.reduce((sum, rating) => sum + Number(rating.score || 0), 0) / page_ratings.length
+    : 0;
   let result = EvaluationResult.NEEDS_REVIEW;
   if (final_score >= 90) result = EvaluationResult.EXCELLENT;
   else if (final_score >= 80) result = EvaluationResult.VERY_GOOD;
   else if (final_score >= 70) result = EvaluationResult.GOOD;
-  return { id: uuid(), ...data, errors, date: now(), total_pages, total_errors, total_penalty, final_score, result };
+  return {
+    id: uuid(),
+    ...data,
+    errors: [],
+    page_ratings,
+    date: now(),
+    total_pages,
+    total_errors: 0,
+    total_penalty: 0,
+    final_score,
+    result
+  };
 }
 
 function createCertificateTemplate(data, createdBy) {
@@ -259,6 +287,7 @@ function createIssuedCertificate(data, issuedBy) {
   return {
     id: uuid(),
     template_id: data.template_id,
+    evaluation_id: data.evaluation_id || null,
     student_id: data.student_id || null,
     student_name: data.student_name,
     degree: data.degree,
@@ -277,6 +306,7 @@ module.exports = {
   StudentStatus,
   UserRole,
   createHalaqa,
+  createHalaqaType,
   createEvaluationErrorType,
   createExamEvaluation,
   createExamRequest,

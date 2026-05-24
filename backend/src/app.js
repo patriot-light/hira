@@ -29,6 +29,7 @@ app.use("/api/sessions", require("./routes/sessionsRoutes"));
 app.use("/api/reports", require("./routes/reportsRoutes"));
 app.use("/api/export", require("./routes/exportRoutes"));
 app.use("/api/certificates", require("./routes/certificatesRoutes"));
+app.use("/api/notifications", require("./routes/notificationsRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);

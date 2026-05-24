@@ -265,6 +265,7 @@ async function issueCertificate(data, user) {
   const certificate = createIssuedCertificate(
     {
       template_id: data.template_id,
+      evaluation_id: data.evaluation_id || null,
       student_id: data.student_id || null,
       student_name: data.student_name,
       degree: data.degree,

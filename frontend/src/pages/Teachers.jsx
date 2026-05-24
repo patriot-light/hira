@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { teachersAPI } from '../services/api';
@@ -42,6 +43,7 @@ import { toast } from 'sonner';
 
 const Teachers = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { canManage } = useAuth();
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +166,7 @@ const Teachers = () => {
         </div>
         {canManage() && (
           <Button 
-            onClick={() => { resetForm(); setDialogOpen(true); }}
+            onClick={() => navigate('/teachers/new')}
             className="gap-2 bg-primary hover:bg-primary/90"
             data-testid="add-teacher-btn"
           >
@@ -220,7 +222,7 @@ const Teachers = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(teacher)}>
+                        <DropdownMenuItem onClick={() => navigate(`/teachers/${teacher.id}/edit`)}>
                           <Edit className="h-4 w-4 me-2" />
                           {t('edit')}
                         </DropdownMenuItem>

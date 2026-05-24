@@ -50,6 +50,7 @@ export const usersAPI = {
 export const studentsAPI = {
   getAll: () => api.get("/students"),
   getOne: (id) => api.get(`/students/${id}`),
+  getAttendance: (id) => api.get(`/students/${id}/attendance`),
   create: (data) => api.post("/students", data),
   update: (id, data) => api.put(`/students/${id}`, data),
   delete: (id) => api.delete(`/students/${id}`),
@@ -77,6 +78,16 @@ export const halaqasAPI = {
     api.post(`/halaqas/${halaqaId}/students/${studentId}`),
   removeStudent: (halaqaId, studentId) =>
     api.delete(`/halaqas/${halaqaId}/students/${studentId}`),
+  getAttendance: (id) => api.get(`/halaqas/${id}/attendance`),
+  markAbsent: (halaqaId, studentId, data) =>
+    api.post(`/halaqas/${halaqaId}/attendance/${studentId}/absent`, data),
+};
+
+export const halaqaTypesAPI = {
+  getAll: () => api.get("/halaqas/types"),
+  create: (data) => api.post("/halaqas/types", data),
+  update: (id, data) => api.put(`/halaqas/types/${id}`, data),
+  delete: (id) => api.delete(`/halaqas/types/${id}`),
 };
 
 // Staff API
@@ -158,6 +169,12 @@ export const certificatesAPI = {
   issue: (data) => api.post("/certificates/issued", data),
   downloadPdf: (id) =>
     api.get(`/certificates/issued/${id}/pdf`, { responseType: "blob" }),
+};
+
+export const notificationsAPI = {
+  getAll: () => api.get("/notifications"),
+  markAllRead: () => api.put("/notifications/read-all"),
+  dismiss: (id) => api.put(`/notifications/${id}/dismiss`),
 };
 
 export default api;

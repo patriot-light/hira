@@ -26,6 +26,14 @@ router.get("/:id", authenticate, async (req, res, next) => {
   }
 });
 
+router.get("/:id/attendance", authenticate, async (req, res, next) => {
+  try {
+    res.json(await service.listStudentAttendance(req.params.id, req.user));
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/:id/exam-request", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
   try {
     res.json(await service.raiseStudentForExam(req.params.id, req.body, req.user));

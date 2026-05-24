@@ -73,6 +73,14 @@ async function getStudentProfile(id, currentUser) {
   return student;
 }
 
+async function listStudentAttendance(studentId, currentUser) {
+  if (!await canAccessStudent(currentUser, studentId)) throw httpError(403, "Insufficient permissions");
+  return getCollection("attendance_records")
+    .find({ student_id: studentId }, { projection: { _id: 0 } })
+    .sort({ created_at: -1 })
+    .toArray();
+}
+
 async function createStudentProfile(data) {
   const userId = await createLinkedUser(data, UserRole.STUDENT);
   const student = createStudent({ ...data, user_id: userId || data.user_id || null });
@@ -187,6 +195,7 @@ module.exports = {
   deleteProfile,
   deleteUser,
   listStudents,
+  listStudentAttendance,
   listUsers,
   getStudentProfile,
   raiseStudentForExam,

@@ -139,6 +139,13 @@ const Evaluations = () => {
   }, [teacherLocked, loggedTeacher]);
 
   useEffect(() => {
+    if (searchParams.get("exam") === "1" && !openedFromStudentList.current) {
+      openedFromStudentList.current = true;
+      const studentId = searchParams.get("student_id");
+      navigate(`/evaluations/new${studentId ? `?student_id=${studentId}` : ""}`, { replace: true });
+      return;
+    }
+
     if (
       !examTeacherLocked ||
       openedFromStudentList.current ||
@@ -162,7 +169,7 @@ const Evaluations = () => {
       notes: "",
     });
     setExamOpen(true);
-  }, [examTeacherLocked, loading, loggedTeacher, searchParams, students]);
+  }, [examTeacherLocked, loading, loggedTeacher, navigate, searchParams, students]);
 
   useEffect(() => {
     if (!examTeacherLocked || !exam.student_id) return;
@@ -278,10 +285,7 @@ const Evaluations = () => {
           </div>
         {canEvaluate() && (
           <Button
-            onClick={() => {
-              resetExam();
-              setExamOpen(true);
-            }}
+            onClick={() => navigate("/evaluations/new")}
             className="gap-2 bg-primary hover:bg-primary/90"
             data-testid="start-exam-btn"
           >

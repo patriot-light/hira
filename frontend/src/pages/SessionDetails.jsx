@@ -128,53 +128,41 @@ const SessionDetails = () => {
       <div className="grid gap-4 md:grid-cols-4">
         {renderDetailBox(t("duration"), `${session.duration_minutes} ${t("minutes")}`)}
         {renderDetailBox(t("totalPages"), session.total_pages)}
-        {renderDetailBox(t("totalErrors"), session.total_errors)}
-        {renderDetailBox(t("totalDeduction"), session.total_penalty)}
+        {renderDetailBox(t("pageRatings"), session.page_ratings?.length || 0)}
+        {renderDetailBox(t("result"), session.result ? t(session.result) : "-")}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("recordedErrors")}</CardTitle>
+          <CardTitle>{t("pageRatings")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("errorName")}</TableHead>
                   <TableHead>{t("page")}</TableHead>
-                  <TableHead>{t("word")}</TableHead>
-                  <TableHead>{t("penalty")}</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    {t("description")}
-                  </TableHead>
+                  <TableHead>{t("rating")}</TableHead>
+                  <TableHead>{t("score")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {session.errors?.length ? (
-                  session.errors.map((error, index) => (
-                    <TableRow key={error.id || index}>
-                      <TableCell className="font-medium">
-                        {error.name || error.category}
-                      </TableCell>
-                      <TableCell>{error.page_number || "-"}</TableCell>
-                      <TableCell>{error.word || "-"}</TableCell>
+                {session.page_ratings?.length ? (
+                  session.page_ratings.map((rating, index) => (
+                    <TableRow key={`${rating.page_number}-${index}`}>
+                      <TableCell>{rating.page_number || "-"}</TableCell>
+                      <TableCell className="font-medium">{rating.rating ? t(rating.rating) : "-"}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          -{error.penalty} {t("marks")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {error.description || "-"}
+                        <Badge variant="outline">{rating.score || "-"}%</Badge>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={3}
                       className="py-8 text-center text-muted-foreground">
-                      {t("noErrorsRecorded")}
+                      {t("noData")}
                     </TableCell>
                   </TableRow>
                 )}

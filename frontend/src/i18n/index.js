@@ -18,6 +18,7 @@ const resources = {
       reports: "Reports",
       certificates: "Certificates",
       settings: "Settings",
+      configuration: "Configuration",
       users: "Users",
       staff: "Staff",
 
@@ -54,6 +55,7 @@ const resources = {
       active: "Active",
       inactive: "Inactive",
       view: "View",
+      viewDetails: "View details",
       loading: "Loading...",
       noData: "No data available",
       confirm: "Confirm",
@@ -94,6 +96,7 @@ const resources = {
       age: "Age",
       nationalId: "National ID",
       phone: "Phone",
+      parentPhone: "Parent phone",
       addStudent: "Add Student",
       editStudent: "Edit Student",
       studentDetails: "Student Details",
@@ -108,6 +111,15 @@ const resources = {
 
       // Halaqas
       halaqaName: "Halaqa Name",
+      halaqaType: "Halaqa Type",
+      halaqaTypes: "Halaqa Types",
+      halaqaTypeName: "Halaqa type name",
+      gender: "Gender",
+      male: "Male",
+      female: "Female",
+      attendanceMode: "Attendance",
+      online: "Online",
+      inPerson: "In-person",
       level: "Level",
       beginner: "Beginner",
       intermediate: "Intermediate",
@@ -118,6 +130,15 @@ const resources = {
       addHalaqa: "Add Halaqa",
       editHalaqa: "Edit Halaqa",
       manageStudents: "Manage Students",
+      addHalaqaType: "Add Halaqa Type",
+      addHalaqaTypeDescription: "Add a dynamic type admins can assign to halaqas.",
+      selectHalaqaType: "Select halaqa type",
+      searchHalaqaTypes: "Search halaqa types",
+      pleaseSelectHalaqaType: "Please select a halaqa type",
+      attendance: "Attendance",
+      markAbsent: "Absent / no response",
+      absent_no_response: "Absent / no response",
+      absenceRecorded: "Absence recorded",
 
       // Schedule
       day: "Day",
@@ -154,6 +175,8 @@ const resources = {
       savedExams: "saved exams",
       pleaseSelectStudent: "Please select a student",
       invalidJuzRange: "The starting Juz must be before the ending Juz",
+      invalidPageRange: "The starting page must be before the ending page",
+      pleaseCompleteRequiredFields: "Please complete the required fields",
 
       // Sessions
       recitationSession: "Recitation Session",
@@ -172,6 +195,14 @@ const resources = {
       sessionResults: "Session Results",
       newSessionDescription: "Record a new Tasmee' session.",
       recitationErrors: "Recitation Errors",
+      pageRatings: "Page Ratings",
+      rating: "Rating",
+      call: "Call",
+      whatsapp: "WhatsApp",
+      noNotifications: "No notifications",
+      studentAbsentNotification: "{{student}} is absent from {{halaqa}}",
+      notifications: "Notifications",
+      markAllRead: "Mark all as read",
 
       // Errors
       errorTracking: "Error Tracking",
@@ -198,7 +229,9 @@ const resources = {
       addErrorDescription: "Add a mistake type and the marks it deducts.",
 
       // Results
+      acceptable: "Acceptable",
       excellent: "Excellent",
+      outstanding: "Outstanding",
       veryGood: "Very Good",
       very_good: "Very Good",
       good: "Good",
@@ -222,6 +255,7 @@ const resources = {
       selectHalaqa: "Select halaqa",
       selectHalaqas: "Select halaqas",
       searchTeachers: "Search teachers",
+      searchStudents: "Search students",
       searchHalaqas: "Search halaqas",
       juzCompleted: "Juz Completed",
       avgSessionScore: "Avg Session Score",
@@ -231,6 +265,7 @@ const resources = {
 
       // Dashboard
       welcomeBack: "Welcome Back",
+      configurationDescription: "Manage shared setup for evaluation errors and halaqa types",
       quickStats: "Quick Stats",
       recentActivity: "Recent Activity",
       upcomingClasses: "Upcoming Classes",
@@ -279,6 +314,9 @@ const resources = {
       color: "Color",
       dragFieldOnCertificate: "Drag the field on the certificate",
       issueCertificate: "Issue certificate",
+      generateCertificate: "Generate certificate",
+      saveAndGenerateCertificate: "Save and generate certificate",
+      certificateFieldsRequired: "Select a template and enter the certificate degree",
       template: "Template",
       selectTemplate: "Select template",
       selectOrTypeBelow: "Select or type below",
@@ -319,6 +357,8 @@ const resources = {
       sessionDeleted: "Session deleted",
       errorTypeSaved: "Error type saved",
       errorTypeDeleted: "Error type deleted",
+      halaqaTypeSaved: "Halaqa type saved",
+      halaqaTypeDeleted: "Halaqa type deleted",
       roleUpdated: "Role updated successfully",
       userDeleted: "User deleted successfully",
       studentRaisedForExam: "Student raised for exam",
@@ -342,6 +382,7 @@ const resources = {
       reports: "التقارير",
       certificates: "الشهادات",
       settings: "الإعدادات",
+      configuration: "الإعدادات",
       users: "المستخدمون",
       staff: "الموظفون",
 
@@ -378,6 +419,7 @@ const resources = {
       active: "نشط",
       inactive: "غير نشط",
       view: "عرض",
+      viewDetails: "عرض التفاصيل",
       loading: "جاري التحميل...",
       noData: "لا توجد بيانات",
       confirm: "تأكيد",
@@ -418,6 +460,7 @@ const resources = {
       age: "العمر",
       nationalId: "رقم الهوية",
       phone: "الهاتف",
+      parentPhone: "هاتف ولي الأمر",
       addStudent: "إضافة طالب",
       editStudent: "تعديل طالب",
       studentDetails: "تفاصيل الطالب",
@@ -432,6 +475,15 @@ const resources = {
 
       // Halaqas
       halaqaName: "اسم الحلقة",
+      halaqaType: "نوع الحلقة",
+      halaqaTypes: "أنواع الحلقات",
+      halaqaTypeName: "اسم نوع الحلقة",
+      gender: "الجنس",
+      male: "ذكور",
+      female: "إناث",
+      attendanceMode: "الحضور",
+      online: "عن بعد",
+      inPerson: "حضوري",
       level: "المستوى",
       beginner: "مبتدئ",
       intermediate: "متوسط",
@@ -442,6 +494,15 @@ const resources = {
       addHalaqa: "إضافة حلقة",
       editHalaqa: "تعديل حلقة",
       manageStudents: "إدارة الطلاب",
+      addHalaqaType: "إضافة نوع حلقة",
+      addHalaqaTypeDescription: "أضف نوعاً ديناميكياً يمكن تعيينه للحلقات.",
+      selectHalaqaType: "اختر نوع الحلقة",
+      searchHalaqaTypes: "ابحث عن أنواع الحلقات",
+      pleaseSelectHalaqaType: "يرجى اختيار نوع الحلقة",
+      attendance: "الحضور",
+      markAbsent: "غائب / لم يرد",
+      absent_no_response: "غائب / لم يرد",
+      absenceRecorded: "تم تسجيل الغياب",
 
       // Schedule
       day: "اليوم",
@@ -478,6 +539,8 @@ const resources = {
       savedExams: "اختبارات محفوظة",
       pleaseSelectStudent: "يرجى اختيار طالب",
       invalidJuzRange: "يجب أن يكون جزء البداية قبل جزء النهاية",
+      invalidPageRange: "يجب أن تكون صفحة البداية قبل صفحة النهاية",
+      pleaseCompleteRequiredFields: "يرجى إكمال الحقول المطلوبة",
 
       // Sessions
       recitationSession: "جلسة التسميع",
@@ -496,6 +559,14 @@ const resources = {
       sessionResults: "نتائج الجلسات",
       newSessionDescription: "سجل جلسة تسميع جديدة.",
       recitationErrors: "أخطاء التلاوة",
+      pageRatings: "تقييم الصفحات",
+      rating: "التقييم",
+      call: "اتصال",
+      whatsapp: "واتساب",
+      noNotifications: "لا توجد إشعارات",
+      studentAbsentNotification: "{{student}} غائب عن {{halaqa}}",
+      notifications: "الإشعارات",
+      markAllRead: "تحديد الكل كمقروء",
 
       // Errors
       errorTracking: "تتبع الأخطاء",
@@ -522,7 +593,9 @@ const resources = {
       addErrorDescription: "أضف نوع الخطأ والدرجات التي يخصمها.",
 
       // Results
+      acceptable: "مقبول",
       excellent: "ممتاز",
+      outstanding: "تفوق",
       veryGood: "جيد جداً",
       very_good: "جيد جداً",
       good: "جيد",
@@ -546,6 +619,7 @@ const resources = {
       selectHalaqa: "اختر حلقة",
       selectHalaqas: "اختر الحلقات",
       searchTeachers: "ابحث عن المعلمين",
+      searchStudents: "ابحث عن الطلاب",
       searchHalaqas: "ابحث عن الحلقات",
       juzCompleted: "الأجزاء المكتملة",
       avgSessionScore: "متوسط درجة الجلسات",
@@ -555,6 +629,7 @@ const resources = {
 
       // Dashboard
       welcomeBack: "مرحباً بعودتك",
+      configurationDescription: "إدارة إعدادات الأخطاء وأنواع الحلقات",
       quickStats: "إحصائيات سريعة",
       recentActivity: "النشاط الأخير",
       upcomingClasses: "الحلقات القادمة",
@@ -603,6 +678,9 @@ const resources = {
       color: "اللون",
       dragFieldOnCertificate: "اسحب الحقل على الشهادة",
       issueCertificate: "إصدار شهادة",
+      generateCertificate: "إصدار شهادة",
+      saveAndGenerateCertificate: "حفظ وإصدار الشهادة",
+      certificateFieldsRequired: "اختر قالباً وأدخل درجة الشهادة",
       template: "القالب",
       selectTemplate: "اختر قالباً",
       selectOrTypeBelow: "اختر أو اكتب أدناه",
@@ -643,6 +721,8 @@ const resources = {
       sessionDeleted: "تم حذف الجلسة",
       errorTypeSaved: "تم حفظ نوع الخطأ",
       errorTypeDeleted: "تم حذف نوع الخطأ",
+      halaqaTypeSaved: "تم حفظ نوع الحلقة",
+      halaqaTypeDeleted: "تم حذف نوع الحلقة",
       roleUpdated: "تم تحديث الدور بنجاح",
       userDeleted: "تم حذف المستخدم بنجاح",
       studentRaisedForExam: "تم رفع اسم الطالب للاختبار",

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { halaqasAPI, teachersAPI, studentsAPI } from "../services/api";
+import { halaqasAPI, halaqaTypesAPI, teachersAPI, studentsAPI } from "../services/api";
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
 import { SearchableMultiSelect } from "../components/ui/searchable-multi-select";
+import { SearchableSelect } from "../components/ui/searchable-select";
 import {
   Dialog,
   DialogContent,
@@ -46,14 +48,17 @@ import {
   Calendar,
   Clock,
   Loader2,
+  UserX,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const Halaqas = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { canManage, isTeacher } = useAuth();
   const [halaqas, setHalaqas] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [halaqaTypes, setHalaqaTypes] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,19 +69,23 @@ const Halaqas = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [examRange, setExamRange] = useState({ from_juz: "1", to_juz: "1" });
   const [formName, setFormName] = useState("");
-  const [formLevel, setFormLevel] = useState("beginner");
+  const [formTypeId, setFormTypeId] = useState("");
+  const [formGender, setFormGender] = useState("male");
+  const [formAttendanceMode, setFormAttendanceMode] = useState("online");
   const [formTeacherIds, setFormTeacherIds] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
-      const [h, tc, st] = await Promise.all([
+      const [h, tc, st, ht] = await Promise.all([
         halaqasAPI.getAll(),
         teachersAPI.getAll(),
         studentsAPI.getAll(),
+        halaqaTypesAPI.getAll(),
       ]);
       setHalaqas(h.data);
       setTeachers(tc.data);
       setAllStudents(st.data);
+      setHalaqaTypes(ht.data);
     } catch (error) {
       toast.error(t("error"));
     } finally {
@@ -90,10 +99,16 @@ const Halaqas = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formTypeId) {
+      toast.error(t("pleaseSelectHalaqaType"));
+      return;
+    }
     try {
       const data = {
         name: formName,
-        level: formLevel,
+        type_id: formTypeId,
+        gender: formGender,
+        attendance_mode: formAttendanceMode,
         teacher_ids: formTeacherIds,
         schedule: [],
       };
@@ -127,7 +142,9 @@ const Halaqas = () => {
   const handleEdit = (halaqa) => {
     setSelectedHalaqa(halaqa);
     setFormName(halaqa.name);
-    setFormLevel(halaqa.level);
+    setFormTypeId(halaqa.type_id || "");
+    setFormGender(halaqa.gender || "male");
+    setFormAttendanceMode(halaqa.attendance_mode || "online");
     setFormTeacherIds(halaqa.teacher_ids || []);
     setDialogOpen(true);
   };
@@ -135,8 +152,21 @@ const Halaqas = () => {
   const resetForm = () => {
     setSelectedHalaqa(null);
     setFormName("");
-    setFormLevel("beginner");
+    setFormTypeId("");
+    setFormGender("male");
+    setFormAttendanceMode("online");
     setFormTeacherIds([]);
+  };
+
+  const handleMarkAbsent = async (halaqa, student) => {
+    try {
+      await halaqasAPI.markAbsent(halaqa.id, student.id, {
+        reason: "absent_no_response",
+      });
+      toast.success(t("absenceRecorded"));
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t("error"));
+    }
   };
 
   const canRaiseForExam = () => canManage() || isTeacher();
@@ -169,12 +199,8 @@ const Halaqas = () => {
     }
   };
 
-  const getLevelColor = (level) => {
-    if (level === "beginner") return "bg-blue-100 text-blue-700";
-    if (level === "intermediate") return "bg-yellow-100 text-yellow-700";
-    if (level === "advanced") return "bg-green-100 text-green-700";
-    return "bg-gray-100 text-gray-700";
-  };
+  const getHalaqaTypeName = (id) =>
+    halaqaTypes.find((type) => type.id === id)?.name || "-";
 
   const getTeacherName = (ids) => {
     if (!ids || ids.length === 0) return "-";
@@ -216,10 +242,7 @@ const Halaqas = () => {
           </div>
         {canManage() && (
           <Button
-            onClick={() => {
-              resetForm();
-              setDialogOpen(true);
-            }}
+            onClick={() => navigate("/halaqas/new")}
             className="gap-2 bg-primary hover:bg-primary/90"
             data-testid="add-halaqa-btn"
           >
@@ -267,9 +290,7 @@ const Halaqas = () => {
                     </div>
                     <div>
                       <CardTitle className="text-lg">{halaqa.name}</CardTitle>
-                      <Badge className={getLevelColor(halaqa.level)}>
-                        {t(halaqa.level)}
-                      </Badge>
+                      <Badge variant="outline">{getHalaqaTypeName(halaqa.type_id)}</Badge>
                     </div>
                   </div>
                   {canManage() && (
@@ -284,7 +305,7 @@ const Halaqas = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(halaqa)}>
+                        <DropdownMenuItem onClick={() => navigate(`/halaqas/${halaqa.id}/edit`)}>
                           <Edit className="h-4 w-4 me-2" />
                           {t("edit")}
                         </DropdownMenuItem>
@@ -305,6 +326,20 @@ const Halaqas = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {t("gender")}:
+                  </span>
+                  <span>{halaqa.gender ? t(halaqa.gender) : "-"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">
+                    {t("attendanceMode")}:
+                  </span>
+                  <span>{halaqa.attendance_mode ? t(halaqa.attendance_mode) : "-"}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
                     {t("assignedTeachers")}:
@@ -322,24 +357,28 @@ const Halaqas = () => {
                 </div>
                 {canRaiseForExam() && (
                   <div className="space-y-2 border-t pt-3">
-                    {getHalaqaStudents(halaqa.id).slice(0, 4).map((student) => (
-                      <div
-                        key={student.id}
-                        className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-sm"
-                      >
-                        <span className="truncate">{student.full_name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1 px-2"
-                          onClick={() => openExamDialog(student)}
-                        >
-                          <FileText className="h-3.5 w-3.5" />
-                          {t("raise")}
-                        </Button>
-                      </div>
-                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      {t("viewDetails")}
+                    </Button>
+                  </div>
+                )}
+                {(canManage() || isTeacher()) && (
+                  <div className="space-y-2 border-t pt-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}
+                    >
+                      <UserX className="h-4 w-4" />
+                      {t("attendance")}
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -372,19 +411,41 @@ const Halaqas = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t("level")} *</Label>
-              <Select value={formLevel} onValueChange={setFormLevel}>
-                <SelectTrigger data-testid="halaqa-level-select">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">{t("beginner")}</SelectItem>
-                  <SelectItem value="intermediate">
-                    {t("intermediate")}
-                  </SelectItem>
-                  <SelectItem value="advanced">{t("advanced")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>{t("halaqaType")} *</Label>
+              <SearchableSelect
+                options={halaqaTypes}
+                value={formTypeId}
+                onChange={setFormTypeId}
+                placeholder={t("selectHalaqaType")}
+                searchPlaceholder={t("searchHalaqaTypes")}
+                emptyLabel={t("noData")}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t("gender")} *</Label>
+                <Select value={formGender} onValueChange={setFormGender}>
+                  <SelectTrigger data-testid="halaqa-gender-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">{t("male")}</SelectItem>
+                    <SelectItem value="female">{t("female")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t("attendanceMode")} *</Label>
+                <Select value={formAttendanceMode} onValueChange={setFormAttendanceMode}>
+                  <SelectTrigger data-testid="halaqa-attendance-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="online">{t("online")}</SelectItem>
+                    <SelectItem value="in_person">{t("inPerson")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>{t("assignedTeachers")}</Label>

@@ -27,6 +27,7 @@ const SearchableMultiSelect = ({
     maxHeight: 224,
   });
   const rootRef = React.useRef(null);
+  const menuRef = React.useRef(null);
   const inputRef = React.useRef(null);
 
   const selectedSet = React.useMemo(
@@ -94,7 +95,12 @@ const SearchableMultiSelect = ({
 
   React.useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!rootRef.current?.contains(event.target)) setOpen(false);
+      if (
+        !rootRef.current?.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
+      ) {
+        setOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -119,6 +125,7 @@ const SearchableMultiSelect = ({
     open && !disabled
       ? createPortal(
           <div
+            ref={menuRef}
             className="z-[9999] overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
             style={{
               position: "fixed",
