@@ -239,8 +239,9 @@ const Students = () => {
   const filteredStudents = students.filter(
     (student) =>
       student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.national_id?.includes(searchQuery),
+      student.father_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.mother_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.phone?.includes(searchQuery),
   );
 
   const getHalaqaNames = (student) => {
@@ -346,9 +347,10 @@ const Students = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("fullName")}</TableHead>
-                  <TableHead>{t("age")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("fatherName")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("motherName")}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    {t("phone")}
+                    {t("studentPhone")}
                   </TableHead>
                   <TableHead className="hidden md:table-cell">
                     {t("halaqas")}
@@ -384,7 +386,8 @@ const Students = () => {
                           {student.full_name}
                         </button>
                       </TableCell>
-                      <TableCell>{student.age}</TableCell>
+                      <TableCell className="hidden md:table-cell">{student.father_name || "-"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{student.mother_name || "-"}</TableCell>
                       <TableCell className="hidden md:table-cell">
                         {student.phone || "-"}
                       </TableCell>

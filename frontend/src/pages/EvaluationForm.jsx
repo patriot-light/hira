@@ -9,7 +9,7 @@ import {
   studentsAPI,
   teachersAPI,
 } from "../services/api";
-import { JUZ_OPTIONS, getJuzPages } from "../constants/quran";
+import { JUZ_OPTIONS, getJuzPagesRange } from "../constants/quran";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -70,7 +70,6 @@ const EvaluationForm = () => {
     teacher_id: "",
     from_juz: "1",
     to_juz: "1",
-    page_number: "1",
     errors: [],
     notes: "",
   });
@@ -87,7 +86,10 @@ const EvaluationForm = () => {
     () => teachers.find((teacher) => teacher.user_id === user?.id),
     [teachers, user],
   );
-  const pageOptions = useMemo(() => getJuzPages(exam.from_juz), [exam.from_juz]);
+  const pageOptions = useMemo(
+    () => getJuzPagesRange(exam.from_juz, exam.to_juz),
+    [exam.from_juz, exam.to_juz],
+  );
   const selectedStudent = useMemo(
     () => students.find((student) => student.id === exam.student_id),
     [exam.student_id, students],
@@ -149,14 +151,6 @@ const EvaluationForm = () => {
   }, [teacherLocked, loggedTeacher]);
 
   useEffect(() => {
-    const pages = getJuzPages(exam.from_juz);
-    setExam((current) => {
-      if (pages.includes(Number(current.page_number))) return current;
-      return { ...current, page_number: pages[0]?.toString() || "1" };
-    });
-  }, [exam.from_juz]);
-
-  useEffect(() => {
     if (!examTeacherLocked || !exam.student_id) return;
     const selected = students.find((student) => student.id === exam.student_id);
     if (!selected?.exam_request) return;
@@ -168,7 +162,19 @@ const EvaluationForm = () => {
   }, [examTeacherLocked, exam.student_id, students]);
 
   const updateExam = (field, value) => {
-    setExam((current) => ({ ...current, [field]: value }));
+    setExam((current) => {
+      if (field === "from_juz") {
+        return {
+          ...current,
+          from_juz: value,
+          to_juz: Number(value) > Number(current.to_juz) ? value : current.to_juz,
+        };
+      }
+      if (field === "to_juz" && Number(value) < Number(current.from_juz)) {
+        return current;
+      }
+      return { ...current, [field]: value };
+    });
   };
 
   const updateCertificateCustomField = (key, value) => {
@@ -204,7 +210,7 @@ const EvaluationForm = () => {
           error_type_id: errorType.id,
           name: errorType.name,
           deduction: Number(errorType.deduction),
-          page_number: current.page_number,
+          page_number: getJuzPagesRange(current.from_juz, current.to_juz)[0] || "",
           word: "",
           note: "",
         },
@@ -336,7 +342,7 @@ const EvaluationForm = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {JUZ_OPTIONS.map((juz) => (
+                {JUZ_OPTIONS.filter((juz) => juz >= Number(exam.from_juz)).map((juz) => (
                   <SelectItem key={juz} value={juz.toString()}>
                     {t("juz")} {juz}
                   </SelectItem>
@@ -354,21 +360,6 @@ const EvaluationForm = () => {
                 {JUZ_OPTIONS.map((juz) => (
                   <SelectItem key={juz} value={juz.toString()}>
                     {t("juz")} {juz}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label>{t("page")}</Label>
-            <Select value={exam.page_number} onValueChange={(value) => updateExam("page_number", value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {pageOptions.map((page) => (
-                  <SelectItem key={page} value={page.toString()}>
-                    {t("page")} {page}
                   </SelectItem>
                 ))}
               </SelectContent>

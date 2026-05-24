@@ -16,6 +16,15 @@ export const getJuzPages = (juz) => {
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 };
 
+export const getJuzPagesRange = (fromJuz, toJuz) => {
+  const from = Number(fromJuz);
+  const to = Number(toJuz);
+  if (!from || !to || from > to) return [];
+  const start = getJuzPageRange(from).start;
+  const end = getJuzPageRange(to).end;
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+};
+
 export const JUZ_OPTIONS = Array.from({ length: 30 }, (_, index) => index + 1);
 
 export const SESSION_PAGE_RATINGS = [

@@ -73,7 +73,12 @@ const SessionForm = () => {
     () => students.find((student) => student.id === studentId),
     [studentId, students],
   );
-  const contactPhone = normalizePhone(selectedStudent?.phone || selectedStudent?.parent_phone);
+  const contactPhone = normalizePhone(
+    selectedStudent?.phone ||
+      selectedStudent?.father_phone ||
+      selectedStudent?.mother_phone ||
+      selectedStudent?.parent_phone,
+  );
 
   const fetchData = useCallback(async () => {
     try {

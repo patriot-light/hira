@@ -108,6 +108,7 @@ test("dynamic exam evaluations calculate final score", async () => {
   const student = await auth(api.post("/api/students")).send({
     full_name: "Fatima Al-Hafiza",
     age: 13,
+    phone: "+966501111111",
     status: "active"
   });
   assert.equal(student.status, 200);
@@ -173,6 +174,7 @@ test("exam teachers only see raised students and use the raised range", async ()
   const hiddenStudent = await auth(api.post("/api/students")).send({
     full_name: "Hidden Exam Student",
     age: 15,
+    phone: "+966555000222",
     status: "active"
   });
   assert.equal(hiddenStudent.status, 200);
@@ -237,6 +239,7 @@ test("teacher users are locked to their own teacher profile for sessions", async
   const student = await auth(api.post("/api/students")).send({
     full_name: "Teacher Lock Student",
     age: 12,
+    phone: "+966555000333",
     status: "active"
   });
   assert.equal(student.status, 200);

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Save, UserPlus } from "lucide-react";
+import { ArrowLeft, Camera, Home, Loader2, Phone, Save, UserPlus, Users } from "lucide-react";
 import { halaqasAPI, studentsAPI } from "../services/api";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -19,12 +19,13 @@ import { SearchableMultiSelect } from "../components/ui/searchable-multi-select"
 
 const emptyForm = {
   full_name: "",
-  age: "",
-  national_id: "",
+  father_name: "",
+  mother_name: "",
   phone: "",
-  parent_phone: "",
-  email: "",
-  password: "",
+  father_phone: "",
+  mother_phone: "",
+  address: "",
+  photo: "",
   status: "active",
   halaqa_id: "",
   halaqa_ids: [],
@@ -50,12 +51,13 @@ const StudentForm = () => {
         const student = studentRes.data;
         setFormData({
           full_name: student.full_name || "",
-          age: student.age?.toString() || "",
-          national_id: student.national_id || "",
+          father_name: student.father_name || "",
+          mother_name: student.mother_name || "",
           phone: student.phone || "",
-          parent_phone: student.parent_phone || "",
-          email: student.email || "",
-          password: "",
+          father_phone: student.father_phone || student.parent_phone || "",
+          mother_phone: student.mother_phone || "",
+          address: student.address || "",
+          photo: student.photo || "",
           status: student.status || "active",
           halaqa_id: student.halaqa_id || "",
           halaqa_ids: student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []),
@@ -77,10 +79,8 @@ const StudentForm = () => {
     try {
       const payload = {
         ...formData,
-        age: parseInt(formData.age) || 0,
         halaqa_ids: formData.halaqa_ids || [],
         halaqa_id: formData.halaqa_ids?.[0] || null,
-        password: formData.password || null,
       };
       if (editing) {
         await studentsAPI.update(id, payload);
@@ -95,6 +95,16 @@ const StudentForm = () => {
     }
   };
 
+  const handlePhotoUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((current) => ({ ...current, photo: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -105,83 +115,148 @@ const StudentForm = () => {
 
   return (
     <form onSubmit={submit} className="space-y-6" data-testid="student-form-page">
-      <div>
-        <Button variant="ghost" className="mb-2 gap-2 px-0" onClick={() => navigate("/students")}>
+      <div className="page-hero rounded-lg p-5 md:p-7">
+        <Button variant="ghost" className="mb-4 gap-2 bg-white/60 px-3" onClick={() => navigate("/students")}>
           <ArrowLeft className="h-4 w-4" />
           {t("students")}
         </Button>
-        <h1 className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
-          <UserPlus className="h-8 w-8 text-primary" />
-          {editing ? t("editStudent") : t("addStudent")}
-        </h1>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/85 text-primary ring-1 ring-primary/15">
+              <UserPlus className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground md:text-4xl">
+                {editing ? t("editStudent") : t("addStudent")}
+              </h1>
+              <p className="mt-1 text-base font-medium text-slate-600">
+                {formData.full_name || t("studentDetails")}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" className="bg-white/85" onClick={() => navigate("/students")}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+              <Save className="h-4 w-4" />
+              {t("save")}
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <Card className="soft-panel rounded-lg">
-        <CardHeader>
-          <CardTitle>{t("studentDetails")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2 md:col-span-2">
-            <Label>{t("fullName")} *</Label>
-            <Input value={formData.full_name} onChange={(event) => setFormData((current) => ({ ...current, full_name: event.target.value }))} required />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("age")} *</Label>
-            <Input type="number" min="1" value={formData.age} onChange={(event) => setFormData((current) => ({ ...current, age: event.target.value }))} required />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("status")}</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData((current) => ({ ...current, status: value }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">{t("active")}</SelectItem>
-                <SelectItem value="inactive">{t("inactive")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("nationalId")}</Label>
-            <Input value={formData.national_id} onChange={(event) => setFormData((current) => ({ ...current, national_id: event.target.value }))} />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("phone")}</Label>
-            <Input value={formData.phone} onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))} />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("parentPhone")}</Label>
-            <Input value={formData.parent_phone} onChange={(event) => setFormData((current) => ({ ...current, parent_phone: event.target.value }))} />
-          </div>
-          <div className="space-y-2">
-            <Label>{t("email")}</Label>
-            <Input type="email" value={formData.email} onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))} />
-          </div>
-          {!editing && (
-            <div className="space-y-2 md:col-span-2">
-              <Label>{t("password")}</Label>
-              <Input type="password" value={formData.password} onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))} placeholder={t("studentPasswordPlaceholder")} />
-              <p className="text-xs text-muted-foreground">{t("loginAccountHint")}</p>
+      <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <Card className="soft-panel rounded-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Camera className="h-5 w-5 text-primary" />
+              {t("photo")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="mx-auto flex h-44 w-44 items-center justify-center overflow-hidden rounded-lg border bg-muted/40">
+              {formData.photo ? (
+                <img src={formData.photo} alt={formData.full_name || t("studentName")} className="h-full w-full object-cover" />
+              ) : (
+                <UserPlus className="h-14 w-14 text-muted-foreground" />
+              )}
             </div>
-          )}
-          <div className="space-y-2 md:col-span-2">
-            <Label>{t("assignToHalaqa")}</Label>
-            <SearchableMultiSelect
-              options={halaqas}
-              selectedValues={formData.halaqa_ids || []}
-              onChange={(halaqa_ids) => setFormData((current) => ({ ...current, halaqa_ids, halaqa_id: halaqa_ids[0] || "" }))}
-              placeholder={t("selectHalaqas")}
-              searchPlaceholder={t("searchHalaqas")}
-              emptyLabel={t("noData")}
-            />
-          </div>
-        </CardContent>
-      </Card>
+            <Input type="file" accept="image/*" onChange={handlePhotoUpload} />
+            <div className="space-y-2">
+              <Label>{t("status")}</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData((current) => ({ ...current, status: value }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">{t("active")}</SelectItem>
+                  <SelectItem value="inactive">{t("inactive")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => navigate("/students")}>{t("cancel")}</Button>
-        <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
-          <Save className="h-4 w-4" />
-          {t("save")}
-        </Button>
+        <div className="space-y-6">
+          <Card className="soft-panel rounded-lg">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <UserPlus className="h-5 w-5 text-primary" />
+                {t("studentDetails")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 p-5 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label>{t("fullName")} *</Label>
+                <Input value={formData.full_name} onChange={(event) => setFormData((current) => ({ ...current, full_name: event.target.value }))} required />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("fatherName")}</Label>
+                <Input value={formData.father_name} onChange={(event) => setFormData((current) => ({ ...current, father_name: event.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("motherName")}</Label>
+                <Input value={formData.mother_name} onChange={(event) => setFormData((current) => ({ ...current, mother_name: event.target.value }))} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="soft-panel rounded-lg">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Phone className="h-5 w-5 text-primary" />
+                {t("phone")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 p-5 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label>{t("studentPhone")} *</Label>
+                <Input value={formData.phone} onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))} required />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("fatherPhone")}</Label>
+                <Input value={formData.father_phone} onChange={(event) => setFormData((current) => ({ ...current, father_phone: event.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("motherPhone")}</Label>
+                <Input value={formData.mother_phone} onChange={(event) => setFormData((current) => ({ ...current, mother_phone: event.target.value }))} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="soft-panel rounded-lg">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Home className="h-5 w-5 text-primary" />
+                {t("address")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 p-5">
+              <div className="space-y-2">
+                <Label>{t("address")}</Label>
+                <Input value={formData.address} onChange={(event) => setFormData((current) => ({ ...current, address: event.target.value }))} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="soft-panel rounded-lg">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Users className="h-5 w-5 text-primary" />
+                {t("assignToHalaqa")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <SearchableMultiSelect
+                options={halaqas}
+                selectedValues={formData.halaqa_ids || []}
+                onChange={(halaqa_ids) => setFormData((current) => ({ ...current, halaqa_ids, halaqa_id: halaqa_ids[0] || "" }))}
+                placeholder={t("selectHalaqas")}
+                searchPlaceholder={t("searchHalaqas")}
+                emptyLabel={t("noData")}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </form>
   );

@@ -118,7 +118,7 @@ const HalaqaDetails = () => {
                       {student.full_name}
                     </button>
                   </TableCell>
-                  <TableCell>{student.phone || student.parent_phone || "-"}</TableCell>
+                  <TableCell>{student.phone || student.father_phone || student.mother_phone || student.parent_phone || "-"}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => markAbsent(student)}>
                       <UserX className="h-4 w-4" />

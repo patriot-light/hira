@@ -76,15 +76,20 @@ const StudentDetails = () => {
           {t("students")}
         </Button>
         <h1 className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
-          <User className="h-8 w-8 text-primary" />
+          {student.photo ? (
+            <img src={student.photo} alt={student.full_name} className="h-12 w-12 rounded-lg object-cover" />
+          ) : (
+            <User className="h-8 w-8 text-primary" />
+          )}
           {student.full_name}
         </h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("age")}</p><p className="font-bold">{student.age || "-"}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("phone")}</p><p className="font-bold">{student.phone || "-"}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("parentPhone")}</p><p className="font-bold">{student.parent_phone || "-"}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("fatherName")}</p><p className="font-bold">{student.father_name || "-"}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("motherName")}</p><p className="font-bold">{student.mother_name || "-"}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("studentPhone")}</p><p className="font-bold">{student.phone || "-"}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("address")}</p><p className="font-bold">{student.address || "-"}</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-sm text-muted-foreground">{t("halaqas")}</p><p className="font-bold">{getHalaqaNames()}</p></CardContent></Card>
       </div>
 

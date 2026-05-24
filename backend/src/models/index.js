@@ -57,15 +57,21 @@ function publicUser(user) {
 }
 
 function createStudent(data) {
-  required(data, ["full_name", "age"]);
+  required(data, ["full_name", "phone"]);
   const halaqa_ids = data.halaqa_ids || (data.halaqa_id ? [data.halaqa_id] : []);
   return {
     id: uuid(),
     full_name: data.full_name,
-    age: data.age,
+    father_name: data.father_name || null,
+    mother_name: data.mother_name || null,
+    age: data.age || null,
     national_id: data.national_id || null,
     phone: data.phone || null,
-    parent_phone: data.parent_phone || null,
+    father_phone: data.father_phone || null,
+    mother_phone: data.mother_phone || null,
+    parent_phone: data.parent_phone || data.father_phone || data.mother_phone || null,
+    address: data.address || null,
+    photo: data.photo || null,
     email: data.email || null,
     status: data.status || StudentStatus.ACTIVE,
     halaqa_id: halaqa_ids[0] || null,
