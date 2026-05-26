@@ -2,10 +2,25 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, Camera, Home, Loader2, Phone, Save, UserPlus, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  AtSign,
+  Camera,
+  Home,
+  Loader2,
+  Phone,
+  Save,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { halaqasAPI, studentsAPI } from "../services/api";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
@@ -16,6 +31,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { SearchableMultiSelect } from "../components/ui/searchable-multi-select";
+import { halaqaLabel } from "../lib/halaqa";
 
 const emptyForm = {
   full_name: "",
@@ -24,6 +40,7 @@ const emptyForm = {
   phone: "",
   father_phone: "",
   mother_phone: "",
+  email: "",
   address: "",
   photo: "",
   status: "active",
@@ -56,11 +73,14 @@ const StudentForm = () => {
           phone: student.phone || "",
           father_phone: student.father_phone || student.parent_phone || "",
           mother_phone: student.mother_phone || "",
+          email: student.email || "",
           address: student.address || "",
           photo: student.photo || "",
           status: student.status || "active",
           halaqa_id: student.halaqa_id || "",
-          halaqa_ids: student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []),
+          halaqa_ids:
+            student.halaqa_ids ||
+            (student.halaqa_id ? [student.halaqa_id] : []),
         });
       }
     } catch (error) {
@@ -114,9 +134,15 @@ const StudentForm = () => {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-6" data-testid="student-form-page">
+    <form
+      onSubmit={submit}
+      className="space-y-6"
+      data-testid="student-form-page">
       <div className="page-hero rounded-lg p-5 md:p-7">
-        <Button variant="ghost" className="mb-4 gap-2 bg-white/60 px-3" onClick={() => navigate("/students")}>
+        <Button
+          variant="ghost"
+          className="mb-4 gap-2 bg-white/60 px-3"
+          onClick={() => navigate("/students")}>
           <ArrowLeft className="h-4 w-4" />
           {t("students")}
         </Button>
@@ -135,10 +161,16 @@ const StudentForm = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="bg-white/85" onClick={() => navigate("/students")}>
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-white/85"
+              onClick={() => navigate("/students")}>
               {t("cancel")}
             </Button>
-            <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+            <Button
+              type="submit"
+              className="gap-2 bg-primary hover:bg-primary/90">
               <Save className="h-4 w-4" />
               {t("save")}
             </Button>
@@ -157,7 +189,11 @@ const StudentForm = () => {
           <CardContent className="space-y-4">
             <div className="mx-auto flex h-44 w-44 items-center justify-center overflow-hidden rounded-lg border bg-muted/40">
               {formData.photo ? (
-                <img src={formData.photo} alt={formData.full_name || t("studentName")} className="h-full w-full object-cover" />
+                <img
+                  src={formData.photo}
+                  alt={formData.full_name || t("studentName")}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <UserPlus className="h-14 w-14 text-muted-foreground" />
               )}
@@ -165,8 +201,14 @@ const StudentForm = () => {
             <Input type="file" accept="image/*" onChange={handlePhotoUpload} />
             <div className="space-y-2">
               <Label>{t("status")}</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData((current) => ({ ...current, status: value }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData((current) => ({ ...current, status: value }))
+                }>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">{t("active")}</SelectItem>
                   <SelectItem value="inactive">{t("inactive")}</SelectItem>
@@ -187,15 +229,40 @@ const StudentForm = () => {
             <CardContent className="grid gap-4 p-5 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label>{t("fullName")} *</Label>
-                <Input value={formData.full_name} onChange={(event) => setFormData((current) => ({ ...current, full_name: event.target.value }))} required />
+                <Input
+                  value={formData.full_name}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      full_name: event.target.value,
+                    }))
+                  }
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("fatherName")}</Label>
-                <Input value={formData.father_name} onChange={(event) => setFormData((current) => ({ ...current, father_name: event.target.value }))} />
+                <Input
+                  value={formData.father_name}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      father_name: event.target.value,
+                    }))
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("motherName")}</Label>
-                <Input value={formData.mother_name} onChange={(event) => setFormData((current) => ({ ...current, mother_name: event.target.value }))} />
+                <Input
+                  value={formData.mother_name}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      mother_name: event.target.value,
+                    }))
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -210,15 +277,64 @@ const StudentForm = () => {
             <CardContent className="grid gap-4 p-5 md:grid-cols-3">
               <div className="space-y-2">
                 <Label>{t("studentPhone")} *</Label>
-                <Input value={formData.phone} onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))} required />
+                <Input
+                  value={formData.phone}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      phone: event.target.value,
+                    }))
+                  }
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("fatherPhone")}</Label>
-                <Input value={formData.father_phone} onChange={(event) => setFormData((current) => ({ ...current, father_phone: event.target.value }))} />
+                <Input
+                  value={formData.father_phone}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      father_phone: event.target.value,
+                    }))
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("motherPhone")}</Label>
-                <Input value={formData.mother_phone} onChange={(event) => setFormData((current) => ({ ...current, mother_phone: event.target.value }))} />
+                <Input
+                  value={formData.mother_phone}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      mother_phone: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="soft-panel rounded-lg">
+            <CardHeader className="border-b border-border/70">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <AtSign className="h-5 w-5 text-primary" />
+                {t("email")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 p-5">
+              <div className="space-y-2">
+                <Label>{t("email")}</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -233,7 +349,15 @@ const StudentForm = () => {
             <CardContent className="grid gap-4 p-5">
               <div className="space-y-2">
                 <Label>{t("address")}</Label>
-                <Input value={formData.address} onChange={(event) => setFormData((current) => ({ ...current, address: event.target.value }))} />
+                <Input
+                  value={formData.address}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      address: event.target.value,
+                    }))
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -249,10 +373,17 @@ const StudentForm = () => {
               <SearchableMultiSelect
                 options={halaqas}
                 selectedValues={formData.halaqa_ids || []}
-                onChange={(halaqa_ids) => setFormData((current) => ({ ...current, halaqa_ids, halaqa_id: halaqa_ids[0] || "" }))}
+                onChange={(halaqa_ids) =>
+                  setFormData((current) => ({
+                    ...current,
+                    halaqa_ids,
+                    halaqa_id: halaqa_ids[0] || "",
+                  }))
+                }
                 placeholder={t("selectHalaqas")}
                 searchPlaceholder={t("searchHalaqas")}
                 emptyLabel={t("noData")}
+                getOptionLabel={(halaqa) => halaqaLabel(halaqa, t)}
               />
             </CardContent>
           </Card>

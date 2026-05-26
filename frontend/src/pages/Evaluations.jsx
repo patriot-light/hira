@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -9,8 +15,14 @@ import {
   teachersAPI,
 } from "../services/api";
 import { Badge } from "../components/ui/badge";
+import { ActionButton } from "../components/ui/action-button";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import {
   Dialog,
@@ -110,7 +122,8 @@ const Evaluations = () => {
   }, [fetchData]);
 
   const totalDeduction = useMemo(
-    () => exam.errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0),
+    () =>
+      exam.errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0),
     [exam.errors],
   );
   const loggedTeacher = useMemo(
@@ -142,7 +155,10 @@ const Evaluations = () => {
     if (searchParams.get("exam") === "1" && !openedFromStudentList.current) {
       openedFromStudentList.current = true;
       const studentId = searchParams.get("student_id");
-      navigate(`/evaluations/new${studentId ? `?student_id=${studentId}` : ""}`, { replace: true });
+      navigate(
+        `/evaluations/new${studentId ? `?student_id=${studentId}` : ""}`,
+        { replace: true },
+      );
       return;
     }
 
@@ -156,7 +172,9 @@ const Evaluations = () => {
     }
 
     const studentId = searchParams.get("student_id");
-    const selectedStudent = students.find((student) => student.id === studentId);
+    const selectedStudent = students.find(
+      (student) => student.id === studentId,
+    );
     if (!selectedStudent) return;
 
     openedFromStudentList.current = true;
@@ -169,7 +187,14 @@ const Evaluations = () => {
       notes: "",
     });
     setExamOpen(true);
-  }, [examTeacherLocked, loading, loggedTeacher, navigate, searchParams, students]);
+  }, [
+    examTeacherLocked,
+    loading,
+    loggedTeacher,
+    navigate,
+    searchParams,
+    students,
+  ]);
 
   useEffect(() => {
     if (!examTeacherLocked || !exam.student_id) return;
@@ -243,6 +268,7 @@ const Evaluations = () => {
   };
 
   const handleDeleteExam = async (id) => {
+    if (!window.confirm(t("deleteEvaluationConfirmation"))) return;
     try {
       await examEvaluationsAPI.delete(id);
       toast.success(t("evaluationDeleted"));
@@ -283,16 +309,15 @@ const Evaluations = () => {
               </p>
             </div>
           </div>
-        {canEvaluate() && (
-          <Button
-            onClick={() => navigate("/evaluations/new")}
-            className="gap-2 bg-primary hover:bg-primary/90"
-            data-testid="start-exam-btn"
-          >
-            <BookOpenCheck className="h-4 w-4" />
-            {t("startExam")}
-          </Button>
-        )}
+          {canEvaluate() && (
+            <Button
+              onClick={() => navigate("/evaluations/new")}
+              className="gap-2 bg-primary hover:bg-primary/90"
+              data-testid="start-exam-btn">
+              <BookOpenCheck className="h-4 w-4" />
+              {t("startExam")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -326,8 +351,7 @@ const Evaluations = () => {
                   <TableRow>
                     <TableCell
                       colSpan={7}
-                      className="py-8 text-center text-muted-foreground"
-                    >
+                      className="py-8 text-center text-muted-foreground">
                       {t("noData")}
                     </TableCell>
                   </TableRow>
@@ -344,35 +368,39 @@ const Evaluations = () => {
                         {t("juz")} {evaluation.from_juz}-{evaluation.to_juz}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={evaluation.total_errors ? "destructive" : "outline"}>
+                        <Badge
+                          variant={
+                            evaluation.total_errors ? "destructive" : "outline"
+                          }>
                           {evaluation.total_errors}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getScoreColor(evaluation.final_score)}>
+                        <Badge
+                          className={getScoreColor(evaluation.final_score)}>
                           {evaluation.final_score}%
                         </Badge>
                       </TableCell>
-                      <TableCell>{evaluation.result ? t(evaluation.result) : "-"}</TableCell>
+                      <TableCell>
+                        {evaluation.result ? t(evaluation.result) : "-"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => navigate(`/evaluations/${evaluation.id}`)}
+                          <ActionButton
+                            label={t("viewDetails")}
+                            icon={FileText}
+                            onClick={() =>
+                              navigate(`/evaluations/${evaluation.id}`)
+                            }
                             data-testid={`view-evaluation-${evaluation.id}`}
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
+                          />
                           {canEvaluate() && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteExam(evaluation.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <ActionButton
+                              label={t("delete")}
+                              icon={Trash2}
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteExam(evaluation.id)}
+                            />
                           )}
                         </div>
                       </TableCell>
@@ -389,9 +417,7 @@ const Evaluations = () => {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>{t("newExam")}</DialogTitle>
-            <DialogDescription>
-              {t("newExamDescription")}
-            </DialogDescription>
+            <DialogDescription>{t("newExamDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSaveExam} className="space-y-5">
             <div className="grid gap-4 md:grid-cols-4">
@@ -402,8 +428,7 @@ const Evaluations = () => {
                   disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, student_id: value }))
-                  }
-                >
+                  }>
                   <SelectTrigger data-testid="exam-student-select">
                     <SelectValue placeholder={t("selectStudent")} />
                   </SelectTrigger>
@@ -423,8 +448,7 @@ const Evaluations = () => {
                   disabled={teacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, teacher_id: value }))
-                  }
-                >
+                  }>
                   <SelectTrigger data-testid="exam-teacher-select">
                     <SelectValue placeholder={t("selectTeacher")} />
                   </SelectTrigger>
@@ -444,17 +468,18 @@ const Evaluations = () => {
                   disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, from_juz: value }))
-                  }
-                >
+                  }>
                   <SelectTrigger data-testid="exam-from-juz-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
-                      <SelectItem key={juz} value={juz.toString()}>
-                        {t("juz")} {juz}
-                      </SelectItem>
-                    ))}
+                    {Array.from({ length: 30 }, (_, index) => index + 1).map(
+                      (juz) => (
+                        <SelectItem key={juz} value={juz.toString()}>
+                          {t("juz")} {juz}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -465,17 +490,18 @@ const Evaluations = () => {
                   disabled={examTeacherLocked}
                   onValueChange={(value) =>
                     setExam((current) => ({ ...current, to_juz: value }))
-                  }
-                >
+                  }>
                   <SelectTrigger data-testid="exam-to-juz-select">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 30 }, (_, index) => index + 1).map((juz) => (
-                      <SelectItem key={juz} value={juz.toString()}>
-                        {t("juz")} {juz}
-                      </SelectItem>
-                    ))}
+                    {Array.from({ length: 30 }, (_, index) => index + 1).map(
+                      (juz) => (
+                        <SelectItem key={juz} value={juz.toString()}>
+                          {t("juz")} {juz}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -492,10 +518,11 @@ const Evaluations = () => {
                       variant="outline"
                       className="h-auto min-h-20 justify-between gap-3 whitespace-normal p-4 text-left"
                       onClick={() => addError(errorType)}
-                      data-testid={`exam-error-${errorType.id}`}
-                    >
+                      data-testid={`exam-error-${errorType.id}`}>
                       <span>
-                        <span className="block font-semibold">{errorType.name}</span>
+                        <span className="block font-semibold">
+                          {errorType.name}
+                        </span>
                         <span className="block text-sm text-muted-foreground">
                           -{errorType.deduction} {t("marks")}
                         </span>
@@ -507,8 +534,12 @@ const Evaluations = () => {
               </div>
 
               <div className="rounded-lg border border-primary/20 bg-primary/[0.07] p-4">
-                <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
-                <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("finalScore")}
+                </p>
+                <p className="mt-1 text-5xl font-bold text-primary">
+                  {liveScore}%
+                </p>
                 <Badge className={`${getScoreColor(liveScore)} mt-3`}>
                   {t(liveResult)}
                 </Badge>
@@ -536,8 +567,7 @@ const Evaluations = () => {
                   {exam.errors.map((error, index) => (
                     <div
                       key={`${error.error_type_id || error.name}-${index}`}
-                      className="rounded-md border p-3"
-                    >
+                      className="rounded-md border p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-medium">{error.name}</p>
@@ -550,8 +580,7 @@ const Evaluations = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => removeError(index)}
-                          aria-label={`${t("remove")} ${error.name}`}
-                        >
+                          aria-label={`${t("remove")} ${error.name}`}>
                           <MinusCircle className="h-5 w-5" />
                         </Button>
                       </div>
@@ -564,7 +593,11 @@ const Evaluations = () => {
                             max="604"
                             value={error.page_number}
                             onChange={(event) =>
-                              updateError(index, "page_number", event.target.value)
+                              updateError(
+                                index,
+                                "page_number",
+                                event.target.value,
+                              )
                             }
                           />
                         </div>
@@ -589,17 +622,25 @@ const Evaluations = () => {
               <Textarea
                 value={exam.notes}
                 onChange={(event) =>
-                  setExam((current) => ({ ...current, notes: event.target.value }))
+                  setExam((current) => ({
+                    ...current,
+                    notes: event.target.value,
+                  }))
                 }
                 placeholder={t("optionalNotes")}
               />
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setExamOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setExamOpen(false)}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+              <Button
+                type="submit"
+                className="gap-2 bg-primary hover:bg-primary/90">
                 <Save className="h-4 w-4" />
                 {t("save")}
               </Button>
@@ -607,7 +648,6 @@ const Evaluations = () => {
           </form>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

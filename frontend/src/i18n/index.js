@@ -139,7 +139,8 @@ const resources = {
       editHalaqa: "Edit Halaqa",
       manageStudents: "Manage Students",
       addHalaqaType: "Add Halaqa Type",
-      addHalaqaTypeDescription: "Add a dynamic type admins can assign to halaqas.",
+      addHalaqaTypeDescription:
+        "Add a dynamic type admins can assign to halaqas.",
       selectHalaqaType: "Select halaqa type",
       searchHalaqaTypes: "Search halaqa types",
       pleaseSelectHalaqaType: "Please select a halaqa type",
@@ -178,7 +179,8 @@ const resources = {
       backToEvaluations: "Back to evaluations",
       startExam: "Start Exam",
       newExam: "New Exam",
-      newExamDescription: "Select the range, tap each error, then save the final grade.",
+      newExamDescription:
+        "Select the range, tap each error, then save the final grade.",
       examResults: "Exam Results",
       savedExams: "saved exams",
       pleaseSelectStudent: "Please select a student",
@@ -211,11 +213,16 @@ const resources = {
       studentAbsentNotification: "{{student}} is absent from {{halaqa}}",
       notifications: "Notifications",
       markAllRead: "Mark all as read",
+      markAsRead: "Mark as read",
+      dismiss: "Dismiss",
+      copy: "Copy",
+      copied: "Copied",
 
       // Errors
       errorTracking: "Error Tracking",
       errorTypes: "Error Types",
-      errorTypesDescription: "Shared deductions used in evaluations and sessions",
+      errorTypesDescription:
+        "Shared deductions used in evaluations and sessions",
       errorCategory: "Error Category",
       errorName: "Error name",
       errorTable: "Error Table",
@@ -273,7 +280,8 @@ const resources = {
 
       // Dashboard
       welcomeBack: "Welcome Back",
-      configurationDescription: "Manage shared setup for evaluation errors and halaqa types",
+      configurationDescription:
+        "Manage shared setup for evaluation errors and halaqa types",
       quickStats: "Quick Stats",
       recentActivity: "Recent Activity",
       upcomingClasses: "Upcoming Classes",
@@ -295,10 +303,25 @@ const resources = {
       changeRole: "Change Role",
       changeUserRole: "Change User Role",
       updateRoleFor: "Update role for {{name}}",
-      deleteStudentConfirmation: "Are you sure you want to delete {{name}}? This action cannot be undone.",
-      deleteTeacherConfirmation: "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      deleteStudentConfirmation:
+        "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      deleteTeacherConfirmation:
+        "Are you sure you want to delete {{name}}? This action cannot be undone.",
       deleteHalaqaConfirmation: "Are you sure you want to delete {{name}}?",
-      deleteUserConfirmation: "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      deleteUserConfirmation:
+        "Are you sure you want to delete {{name}}? This action cannot be undone.",
+      deleteStudentImpact:
+        "This student is assigned to {{count}} halaqa(s). Deleting the student removes those assignments.",
+      deleteTeacherImpact:
+        "This teacher is assigned to: {{halaqas}}. Deleting the teacher removes them from those halaqas.",
+      deleteHalaqaImpact:
+        "This halaqa has {{count}} student(s). Deleting it removes the halaqa from each student.",
+      deleteErrorTypeConfirmation: "Delete {{name}}?",
+      deleteHalaqaTypeConfirmation: "Delete {{name}}?",
+      deleteSessionConfirmation: "Delete this session?",
+      deleteEvaluationConfirmation: "Delete this evaluation?",
+      deleteCertificateTemplateConfirmation: "Delete {{name}}?",
+      typeNameToConfirm: "Type {{name}} to confirm",
       optionalNotes: "Optional notes",
       raiseNameForExam: "Raise the name for exam",
       raiseNameForExamDescription: "Specify the exam range for {{name}}.",
@@ -315,7 +338,8 @@ const resources = {
       degree: "Degree",
       issueDate: "Issue date",
       certificateNumber: "Certificate number",
-      uploadCertificateBackground: "Upload a PNG or JPEG certificate background",
+      uploadCertificateBackground:
+        "Upload a PNG or JPEG certificate background",
       fieldLabel: "Field label",
       fontSize: "Font size",
       widthPercent: "Width %",
@@ -324,7 +348,8 @@ const resources = {
       issueCertificate: "Issue certificate",
       generateCertificate: "Generate certificate",
       saveAndGenerateCertificate: "Save and generate certificate",
-      certificateFieldsRequired: "Select a template and enter the certificate degree",
+      certificateFieldsRequired:
+        "Select a template and enter the certificate degree",
       template: "Template",
       selectTemplate: "Select template",
       selectOrTypeBelow: "Select or type below",
@@ -337,9 +362,11 @@ const resources = {
       pdf: "PDF",
       noIssuedCertificates: "No issued certificates yet.",
       couldNotLoadCertificates: "Could not load certificates",
-      validCertificateImageRequired: "Upload a valid PNG or JPEG certificate image",
+      validCertificateImageRequired:
+        "Upload a valid PNG or JPEG certificate image",
       enterFieldNameFirst: "Enter a field name first",
-      certificateTemplateValidation: "Add a name, image, and at least one placeholder",
+      certificateTemplateValidation:
+        "Add a name, image, and at least one placeholder",
       certificateTemplateUpdated: "Certificate template updated",
       certificateTemplateSaved: "Certificate template saved",
       certificateTemplateDeleted: "Certificate template deleted",
@@ -550,7 +577,8 @@ const resources = {
       backToEvaluations: "العودة إلى التقييمات",
       startExam: "بدء الاختبار",
       newExam: "اختبار جديد",
-      newExamDescription: "حدد النطاق، ثم أضف كل خطأ، وبعدها احفظ الدرجة النهائية.",
+      newExamDescription:
+        "حدد النطاق، ثم أضف كل خطأ، وبعدها احفظ الدرجة النهائية.",
       examResults: "نتائج الاختبارات",
       savedExams: "اختبارات محفوظة",
       pleaseSelectStudent: "يرجى اختيار طالب",
@@ -583,6 +611,10 @@ const resources = {
       studentAbsentNotification: "{{student}} غائب عن {{halaqa}}",
       notifications: "الإشعارات",
       markAllRead: "تحديد الكل كمقروء",
+      markAsRead: "تحديد كمقروء",
+      dismiss: "إخفاء",
+      copy: "نسخ",
+      copied: "تم النسخ",
 
       // Errors
       errorTracking: "تتبع الأخطاء",
@@ -667,10 +699,25 @@ const resources = {
       changeRole: "تغيير الدور",
       changeUserRole: "تغيير دور المستخدم",
       updateRoleFor: "تحديث دور {{name}}",
-      deleteStudentConfirmation: "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
-      deleteTeacherConfirmation: "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteStudentConfirmation:
+        "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteTeacherConfirmation:
+        "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
       deleteHalaqaConfirmation: "هل أنت متأكد من حذف {{name}}؟",
-      deleteUserConfirmation: "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteUserConfirmation:
+        "هل أنت متأكد من حذف {{name}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteStudentImpact:
+        "هذا الطالب معيّن في {{count}} حلقة. حذف الطالب سيزيل هذه التعيينات.",
+      deleteTeacherImpact:
+        "هذا المعلم معيّن في: {{halaqas}}. حذف المعلم سيزيله من هذه الحلقات.",
+      deleteHalaqaImpact:
+        "هذه الحلقة تحتوي على {{count}} طالب. حذفها سيزيل الحلقة من الطلاب.",
+      deleteErrorTypeConfirmation: "حذف {{name}}؟",
+      deleteHalaqaTypeConfirmation: "حذف {{name}}؟",
+      deleteSessionConfirmation: "حذف هذه الجلسة؟",
+      deleteEvaluationConfirmation: "حذف هذا التقييم؟",
+      deleteCertificateTemplateConfirmation: "حذف {{name}}؟",
+      typeNameToConfirm: "اكتب {{name}} للتأكيد",
       optionalNotes: "ملاحظات اختيارية",
       raiseNameForExam: "رفع الاسم للاختبار",
       raiseNameForExamDescription: "حدد نطاق الاختبار للطالب {{name}}.",
@@ -711,7 +758,8 @@ const resources = {
       couldNotLoadCertificates: "تعذر تحميل الشهادات",
       validCertificateImageRequired: "ارفع صورة شهادة صالحة بصيغة PNG أو JPEG",
       enterFieldNameFirst: "أدخل اسم الحقل أولاً",
-      certificateTemplateValidation: "أضف اسماً وصورة وعنصر نائب واحداً على الأقل",
+      certificateTemplateValidation:
+        "أضف اسماً وصورة وعنصر نائب واحداً على الأقل",
       certificateTemplateUpdated: "تم تحديث قالب الشهادة",
       certificateTemplateSaved: "تم حفظ قالب الشهادة",
       certificateTemplateDeleted: "تم حذف قالب الشهادة",

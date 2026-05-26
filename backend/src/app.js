@@ -10,8 +10,15 @@ const { seedErrorTypes } = require("./services/evaluationService");
 
 const app = express();
 
-const corsOrigins = (process.env.CORS_ORIGINS || "*").split(",").map((origin) => origin.trim());
-app.use(cors({ origin: corsOrigins.includes("*") ? true : corsOrigins, credentials: true }));
+const corsOrigins = (process.env.CORS_ORIGINS || "*")
+  .split(",")
+  .map((origin) => origin.trim());
+app.use(
+  cors({
+    origin: corsOrigins.includes("*") ? true : corsOrigins,
+    credentials: true,
+  }),
+);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(express.json({ limit: "12mb" }));
 

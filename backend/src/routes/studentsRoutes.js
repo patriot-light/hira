@@ -34,13 +34,19 @@ router.get("/:id/attendance", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/:id/exam-request", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.raiseStudentForExam(req.params.id, req.body, req.user));
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/:id/exam-request",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(
+        await service.raiseStudentForExam(req.params.id, req.body, req.user),
+      );
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.put("/:id", requireRoles("admin", "staff"), async (req, res, next) => {
   try {
@@ -50,13 +56,21 @@ router.put("/:id", requireRoles("admin", "staff"), async (req, res, next) => {
   }
 });
 
-router.delete("/:id", requireRoles("admin", "staff"), async (req, res, next) => {
-  try {
-    await service.deleteProfile("students", req.params.id, "Student not found");
-    res.json({ message: "Student deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/:id",
+  requireRoles("admin", "staff"),
+  async (req, res, next) => {
+    try {
+      await service.deleteProfile(
+        "students",
+        req.params.id,
+        "Student not found",
+      );
+      res.json({ message: "Student deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 module.exports = router;

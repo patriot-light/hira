@@ -16,6 +16,7 @@ import StudentForm from "./pages/StudentForm";
 import StudentDetails from "./pages/StudentDetails";
 import Teachers from "./pages/Teachers";
 import TeacherForm from "./pages/TeacherForm";
+import TeacherDetails from "./pages/TeacherDetails";
 import Halaqas from "./pages/Halaqas";
 import HalaqaForm from "./pages/HalaqaForm";
 import HalaqaDetails from "./pages/HalaqaDetails";
@@ -98,7 +99,8 @@ function AppRoutes() {
         <Route
           path="students"
           element={
-            <ProtectedRoute allowedRoles={["admin", "staff", "teacher", "exam_teacher"]}>
+            <ProtectedRoute
+              allowedRoles={["admin", "staff", "teacher", "exam_teacher"]}>
               <Students />
             </ProtectedRoute>
           }
@@ -122,7 +124,14 @@ function AppRoutes() {
         <Route
           path="students/:id"
           element={
-            <ProtectedRoute allowedRoles={["admin", "student"]}>
+            <ProtectedRoute
+              allowedRoles={[
+                "admin",
+                "staff",
+                "teacher",
+                "exam_teacher",
+                "student",
+              ]}>
               <StudentDetails />
             </ProtectedRoute>
           }
@@ -148,6 +157,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["admin", "staff"]}>
               <TeacherForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="teachers/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff", "teacher"]}>
+              <TeacherDetails />
             </ProtectedRoute>
           }
         />

@@ -1,9 +1,24 @@
 const { v4: uuid } = require("uuid");
 
-const UserRole = Object.freeze({ ADMIN: "admin", STAFF: "staff", TEACHER: "teacher", EXAM_TEACHER: "exam_teacher", STUDENT: "student" });
-const HalaqaLevel = Object.freeze({ BEGINNER: "beginner", INTERMEDIATE: "intermediate", ADVANCED: "advanced" });
+const UserRole = Object.freeze({
+  ADMIN: "admin",
+  STAFF: "staff",
+  TEACHER: "teacher",
+  EXAM_TEACHER: "exam_teacher",
+  STUDENT: "student",
+});
+const HalaqaLevel = Object.freeze({
+  BEGINNER: "beginner",
+  INTERMEDIATE: "intermediate",
+  ADVANCED: "advanced",
+});
 const StudentStatus = Object.freeze({ ACTIVE: "active", INACTIVE: "inactive" });
-const EvaluationResult = Object.freeze({ EXCELLENT: "excellent", VERY_GOOD: "very_good", GOOD: "good", NEEDS_REVIEW: "needs_review" });
+const EvaluationResult = Object.freeze({
+  EXCELLENT: "excellent",
+  VERY_GOOD: "very_good",
+  GOOD: "good",
+  NEEDS_REVIEW: "needs_review",
+});
 
 function now() {
   return new Date().toISOString();
@@ -11,7 +26,11 @@ function now() {
 
 function required(data, fields) {
   for (const field of fields) {
-    if (data[field] === undefined || data[field] === null || data[field] === "") {
+    if (
+      data[field] === undefined ||
+      data[field] === null ||
+      data[field] === ""
+    ) {
       const error = new Error(`${field} is required`);
       error.status = 400;
       throw error;
@@ -41,7 +60,7 @@ function createUser(data) {
     full_name: data.full_name,
     role: data.role || UserRole.STUDENT,
     created_at: now(),
-    is_active: data.is_active ?? true
+    is_active: data.is_active ?? true,
   };
 }
 
@@ -52,13 +71,14 @@ function publicUser(user) {
     email: user.email,
     full_name: user.full_name,
     role: user.role,
-    is_active: user.is_active ?? true
+    is_active: user.is_active ?? true,
   };
 }
 
 function createStudent(data) {
   required(data, ["full_name", "phone"]);
-  const halaqa_ids = data.halaqa_ids || (data.halaqa_id ? [data.halaqa_id] : []);
+  const halaqa_ids =
+    data.halaqa_ids || (data.halaqa_id ? [data.halaqa_id] : []);
   return {
     id: uuid(),
     full_name: data.full_name,
@@ -69,7 +89,8 @@ function createStudent(data) {
     phone: data.phone || null,
     father_phone: data.father_phone || null,
     mother_phone: data.mother_phone || null,
-    parent_phone: data.parent_phone || data.father_phone || data.mother_phone || null,
+    parent_phone:
+      data.parent_phone || data.father_phone || data.mother_phone || null,
     address: data.address || null,
     photo: data.photo || null,
     email: data.email || null,
@@ -77,7 +98,7 @@ function createStudent(data) {
     halaqa_id: halaqa_ids[0] || null,
     halaqa_ids,
     user_id: data.user_id || null,
-    created_at: now()
+    created_at: now(),
   };
 }
 
@@ -91,7 +112,7 @@ function createTeacher(data) {
     phone: data.phone || null,
     email: data.email || null,
     user_id: data.user_id || null,
-    created_at: now()
+    created_at: now(),
   };
 }
 
@@ -104,7 +125,7 @@ function createStaff(data) {
     phone: data.phone || null,
     email: data.email || null,
     user_id: data.user_id || null,
-    created_at: now()
+    created_at: now(),
   };
 }
 
@@ -119,7 +140,7 @@ function createHalaqa(data) {
     attendance_mode: data.attendance_mode || null,
     teacher_ids: data.teacher_ids || [],
     schedule: data.schedule || [],
-    created_at: now()
+    created_at: now(),
   };
 }
 
@@ -130,22 +151,39 @@ function createHalaqaType(data) {
     name: data.name,
     description: data.description || null,
     is_active: data.is_active ?? true,
-    created_at: now()
+    created_at: now(),
   };
 }
 
 function createPageEvaluation(data, evaluatorId) {
   required(data, ["student_id", "page_number", "score"]);
   numberRange(data.score, "score", 0, 100);
-  return { id: uuid(), ...data, notes: data.notes || null, date: now(), evaluator_id: evaluatorId || null };
+  return {
+    id: uuid(),
+    ...data,
+    notes: data.notes || null,
+    date: now(),
+    evaluator_id: evaluatorId || null,
+  };
 }
 
 function createJuzEvaluation(data, evaluatorId) {
-  required(data, ["student_id", "juz_number", "memorization_score", "mastery_score"]);
+  required(data, [
+    "student_id",
+    "juz_number",
+    "memorization_score",
+    "mastery_score",
+  ]);
   numberRange(data.juz_number, "juz_number", 1, 30);
   numberRange(data.memorization_score, "memorization_score", 0, 100);
   numberRange(data.mastery_score, "mastery_score", 0, 100);
-  return { id: uuid(), ...data, notes: data.notes || null, date: now(), evaluator_id: evaluatorId || null };
+  return {
+    id: uuid(),
+    ...data,
+    notes: data.notes || null,
+    date: now(),
+    evaluator_id: evaluatorId || null,
+  };
 }
 
 function createEvaluationErrorType(data) {
@@ -157,7 +195,7 @@ function createEvaluationErrorType(data) {
     deduction: Number(data.deduction),
     description: data.description || null,
     is_active: data.is_active ?? true,
-    created_at: now()
+    created_at: now(),
   };
 }
 
@@ -186,9 +224,12 @@ function createExamEvaluation(data, evaluatorId) {
     deduction: Number(error.deduction || 0),
     page_number: error.page_number ? Number(error.page_number) : null,
     word: error.word || "",
-    note: error.note || null
+    note: error.note || null,
   }));
-  const total_deduction = errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0);
+  const total_deduction = errors.reduce(
+    (sum, error) => sum + Number(error.deduction || 0),
+    0,
+  );
   const final_score = Math.max(0, 100 - total_deduction);
   return {
     id: uuid(),
@@ -203,7 +244,7 @@ function createExamEvaluation(data, evaluatorId) {
     final_score,
     result: resultFromScore(final_score),
     notes: data.notes || null,
-    date: now()
+    date: now(),
   };
 }
 
@@ -227,27 +268,34 @@ function createExamRequest(data, raisedBy) {
     raised_by: raisedBy || null,
     notes: data.notes || null,
     created_at: now(),
-    completed_at: null
+    completed_at: null,
   };
 }
 
 function createSession(data) {
-  required(data, ["student_id", "teacher_id", "duration_minutes", "from_page", "to_page"]);
+  required(data, [
+    "student_id",
+    "teacher_id",
+    "duration_minutes",
+    "from_page",
+    "to_page",
+  ]);
   const ratingScores = {
     acceptable: 70,
     good: 80,
     very_good: 90,
     excellent: 95,
-    outstanding: 100
+    outstanding: 100,
   };
   const page_ratings = (data.page_ratings || []).map((rating) => ({
     page_number: Number(rating.page_number),
     rating: rating.rating,
-    score: ratingScores[rating.rating] || Number(rating.score || 0)
+    score: ratingScores[rating.rating] || Number(rating.score || 0),
   }));
   const total_pages = Math.abs(data.to_page - data.from_page) + 1;
   const final_score = page_ratings.length
-    ? page_ratings.reduce((sum, rating) => sum + Number(rating.score || 0), 0) / page_ratings.length
+    ? page_ratings.reduce((sum, rating) => sum + Number(rating.score || 0), 0) /
+      page_ratings.length
     : 0;
   let result = EvaluationResult.NEEDS_REVIEW;
   if (final_score >= 90) result = EvaluationResult.EXCELLENT;
@@ -263,7 +311,7 @@ function createSession(data) {
     total_errors: 0,
     total_penalty: 0,
     final_score,
-    result
+    result,
   };
 }
 
@@ -284,7 +332,7 @@ function createCertificateTemplate(data, createdBy) {
     fields,
     created_by: createdBy || null,
     created_at: now(),
-    updated_at: now()
+    updated_at: now(),
   };
 }
 
@@ -302,7 +350,7 @@ function createIssuedCertificate(data, issuedBy) {
     certificate_number: data.certificate_number || `CERT-${Date.now()}`,
     template_snapshot: data.template_snapshot || null,
     issued_by: issuedBy || null,
-    issued_at: now()
+    issued_at: now(),
   };
 }
 
@@ -325,5 +373,5 @@ module.exports = {
   createStudent,
   createTeacher,
   createUser,
-  publicUser
+  publicUser,
 };

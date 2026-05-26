@@ -14,7 +14,14 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import { BookOpenCheck, Eye, EyeOff, Globe, Loader2, ShieldCheck } from "lucide-react";
+import {
+  BookOpenCheck,
+  Eye,
+  EyeOff,
+  Globe,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/img/logo.png";
 
@@ -56,7 +63,11 @@ const Login = () => {
             <div className="flex items-center justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white shadow-[0_18px_35px_-24px_rgba(15,23,42,0.65)] ring-1 ring-primary/15">
-                  <img src={logo} alt="Hira Logo" className="h-11 w-11 object-contain" />
+                  <img
+                    src={logo}
+                    alt="Hira Logo"
+                    className="h-11 w-11 object-contain"
+                  />
                 </div>
                 <div className="min-w-0">
                   <h1 className="truncate text-2xl font-bold text-foreground">
@@ -74,8 +85,7 @@ const Login = () => {
                 size="sm"
                 onClick={toggleLanguage}
                 className="shrink-0 gap-2 bg-white/85"
-                data-testid="login-language-toggle"
-              >
+                data-testid="login-language-toggle">
                 <Globe className="h-4 w-4" />
                 {language === "en" ? "العربية" : "English"}
               </Button>
@@ -148,8 +158,7 @@ const Login = () => {
                         size="icon"
                         className="absolute end-0 top-0 h-12 w-12"
                         onClick={() => setShowPassword(!showPassword)}
-                        data-testid="toggle-password-btn"
-                      >
+                        data-testid="toggle-password-btn">
                         {showPassword ? (
                           <EyeOff className="h-4 w-4 text-muted-foreground" />
                         ) : (
@@ -163,8 +172,7 @@ const Login = () => {
                     type="submit"
                     className="h-12 w-full gap-2 bg-primary text-base hover:bg-primary/90"
                     disabled={loading}
-                    data-testid="login-submit-btn"
-                  >
+                    data-testid="login-submit-btn">
                     {loading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />

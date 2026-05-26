@@ -8,9 +8,14 @@ class MemoryCollection {
   matches(item, query = {}) {
     return Object.entries(query).every(([key, expected]) => {
       const actual = item[key];
-      if (expected && typeof expected === "object" && !Array.isArray(expected)) {
+      if (
+        expected &&
+        typeof expected === "object" &&
+        !Array.isArray(expected)
+      ) {
         if ("$in" in expected) {
-          if (Array.isArray(actual)) return actual.some((value) => expected.$in.includes(value));
+          if (Array.isArray(actual))
+            return actual.some((value) => expected.$in.includes(value));
           return expected.$in.includes(actual);
         }
         if ("$ne" in expected) return actual !== expected.$ne;
@@ -65,7 +70,10 @@ class MemoryCollection {
 
   async deleteOne(query) {
     const before = this.items.length;
-    this.items = this.items.filter((entry, index) => index !== this.items.findIndex((item) => this.matches(item, query)));
+    this.items = this.items.filter(
+      (entry, index) =>
+        index !== this.items.findIndex((item) => this.matches(item, query)),
+    );
     return { deletedCount: before === this.items.length ? 0 : 1 };
   }
 
@@ -80,7 +88,8 @@ class MemoryDatabase {
   }
 
   collection(name) {
-    if (!this.collections.has(name)) this.collections.set(name, new MemoryCollection());
+    if (!this.collections.has(name))
+      this.collections.set(name, new MemoryCollection());
     return this.collections.get(name);
   }
 }
@@ -110,4 +119,10 @@ async function closeDatabase() {
   if (client) await client.close();
 }
 
-module.exports = { closeDatabase, connectDatabase, getCollection, getDb, isUsingMemory: () => usingMemory };
+module.exports = {
+  closeDatabase,
+  connectDatabase,
+  getCollection,
+  getDb,
+  isUsingMemory: () => usingMemory,
+};

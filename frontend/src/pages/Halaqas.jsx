@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { halaqasAPI, halaqaTypesAPI, teachersAPI, studentsAPI } from "../services/api";
+import {
+  halaqasAPI,
+  halaqaTypesAPI,
+  teachersAPI,
+  studentsAPI,
+} from "../services/api";
 import {
   Card,
   CardContent,
@@ -13,6 +18,8 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
+import { ActionButton } from "../components/ui/action-button";
+import { TypedDeleteDialog } from "../components/ui/typed-delete-dialog";
 import { SearchableMultiSelect } from "../components/ui/searchable-multi-select";
 import { SearchableSelect } from "../components/ui/searchable-select";
 import {
@@ -31,15 +38,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import {
   Plus,
   Search,
-  MoreVertical,
   Edit,
   Trash2,
   BookOpen,
@@ -51,6 +51,7 @@ import {
   UserX,
 } from "lucide-react";
 import { toast } from "sonner";
+import { halaqaLabel } from "../lib/halaqa";
 
 const Halaqas = () => {
   const { t } = useTranslation();
@@ -173,7 +174,9 @@ const Halaqas = () => {
 
   const getHalaqaStudents = (halaqaId) =>
     allStudents.filter((student) =>
-      (student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : [])).includes(halaqaId),
+      (
+        student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : [])
+      ).includes(halaqaId),
     );
 
   const openExamDialog = (student) => {
@@ -212,6 +215,11 @@ const Halaqas = () => {
 
   const getStudentCount = (halaqaId) => getHalaqaStudents(halaqaId).length;
 
+  const deleteImpact =
+    selectedHalaqa && getStudentCount(selectedHalaqa.id)
+      ? t("deleteHalaqaImpact", { count: getStudentCount(selectedHalaqa.id) })
+      : "";
+
   const filteredHalaqas = halaqas.filter((h) =>
     h.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -240,16 +248,15 @@ const Halaqas = () => {
               </p>
             </div>
           </div>
-        {canManage() && (
-          <Button
-            onClick={() => navigate("/halaqas/new")}
-            className="gap-2 bg-primary hover:bg-primary/90"
-            data-testid="add-halaqa-btn"
-          >
-            <Plus className="h-4 w-4" />
-            {t("addHalaqa")}
-          </Button>
-        )}
+          {canManage() && (
+            <Button
+              onClick={() => navigate("/halaqas/new")}
+              className="gap-2 bg-primary hover:bg-primary/90"
+              data-testid="add-halaqa-btn">
+              <Plus className="h-4 w-4" />
+              {t("addHalaqa")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -280,8 +287,7 @@ const Halaqas = () => {
             <Card
               key={halaqa.id}
               className="task-tile card-hover"
-              data-testid={`halaqa-card-${halaqa.id}`}
-            >
+              data-testid={`halaqa-card-${halaqa.id}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -289,47 +295,44 @@ const Halaqas = () => {
                       <BookOpen className="h-6 w-6" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{halaqa.name}</CardTitle>
-                      <Badge variant="outline">{getHalaqaTypeName(halaqa.type_id)}</Badge>
+                      <CardTitle className="text-lg">
+                        <button
+                          type="button"
+                          className="text-start hover:text-primary hover:underline"
+                          onClick={() => navigate(`/halaqas/${halaqa.id}`)}>
+                          {halaqaLabel(halaqa, t)}
+                        </button>
+                      </CardTitle>
+                      <Badge variant="outline">
+                        {getHalaqaTypeName(halaqa.type_id)}
+                      </Badge>
                     </div>
                   </div>
                   {canManage() && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          data-testid={`halaqa-actions-${halaqa.id}`}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/halaqas/${halaqa.id}/edit`)}>
-                          <Edit className="h-4 w-4 me-2" />
-                          {t("edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedHalaqa(halaqa);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 me-2" />
-                          {t("delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <ActionButton
+                        label={t("edit")}
+                        icon={Edit}
+                        onClick={() => navigate(`/halaqas/${halaqa.id}/edit`)}
+                        data-testid={`halaqa-edit-${halaqa.id}`}
+                      />
+                      <ActionButton
+                        label={t("delete")}
+                        icon={Trash2}
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setSelectedHalaqa(halaqa);
+                          setDeleteDialogOpen(true);
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">
-                    {t("gender")}:
-                  </span>
+                  <span className="text-muted-foreground">{t("gender")}:</span>
                   <span>{halaqa.gender ? t(halaqa.gender) : "-"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
@@ -337,7 +340,9 @@ const Halaqas = () => {
                   <span className="text-muted-foreground">
                     {t("attendanceMode")}:
                   </span>
-                  <span>{halaqa.attendance_mode ? t(halaqa.attendance_mode) : "-"}</span>
+                  <span>
+                    {halaqa.attendance_mode ? t(halaqa.attendance_mode) : "-"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -361,8 +366,7 @@ const Halaqas = () => {
                       type="button"
                       variant="outline"
                       className="w-full gap-2"
-                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}
-                    >
+                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}>
                       <FileText className="h-4 w-4" />
                       {t("viewDetails")}
                     </Button>
@@ -374,8 +378,7 @@ const Halaqas = () => {
                       type="button"
                       variant="outline"
                       className="w-full gap-2"
-                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}
-                    >
+                      onClick={() => navigate(`/halaqas/${halaqa.id}`)}>
                       <UserX className="h-4 w-4" />
                       {t("attendance")}
                     </Button>
@@ -436,7 +439,9 @@ const Halaqas = () => {
               </div>
               <div className="space-y-2">
                 <Label>{t("attendanceMode")} *</Label>
-                <Select value={formAttendanceMode} onValueChange={setFormAttendanceMode}>
+                <Select
+                  value={formAttendanceMode}
+                  onValueChange={setFormAttendanceMode}>
                   <SelectTrigger data-testid="halaqa-attendance-select">
                     <SelectValue />
                   </SelectTrigger>
@@ -463,15 +468,13 @@ const Halaqas = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
+                onClick={() => setDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button
                 type="submit"
                 className="bg-primary hover:bg-primary/90"
-                data-testid="save-halaqa-btn"
-              >
+                data-testid="save-halaqa-btn">
                 {t("save")}
               </Button>
             </DialogFooter>
@@ -484,7 +487,9 @@ const Halaqas = () => {
           <DialogHeader>
             <DialogTitle>{t("raiseNameForExam")}</DialogTitle>
             <DialogDescription>
-              {t("raiseNameForExamDescription", { name: selectedStudent?.full_name })}
+              {t("raiseNameForExamDescription", {
+                name: selectedStudent?.full_name,
+              })}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRaiseForExam} className="space-y-4">
@@ -497,7 +502,10 @@ const Halaqas = () => {
                   max="30"
                   value={examRange.from_juz}
                   onChange={(event) =>
-                    setExamRange((current) => ({ ...current, from_juz: event.target.value }))
+                    setExamRange((current) => ({
+                      ...current,
+                      from_juz: event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -509,13 +517,19 @@ const Halaqas = () => {
                   max="30"
                   value={examRange.to_juz}
                   onChange={(event) =>
-                    setExamRange((current) => ({ ...current, to_juz: event.target.value }))
+                    setExamRange((current) => ({
+                      ...current,
+                      to_juz: event.target.value,
+                    }))
                   }
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setExamDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setExamDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
@@ -526,31 +540,20 @@ const Halaqas = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("confirm")}</DialogTitle>
-            <DialogDescription>
-              {t("deleteHalaqaConfirmation", { name: selectedHalaqa?.name })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              data-testid="confirm-delete-halaqa-btn"
-            >
-              {t("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TypedDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={t("confirm")}
+        description={t("deleteHalaqaConfirmation", {
+          name: selectedHalaqa ? halaqaLabel(selectedHalaqa, t) : "",
+        })}
+        name={selectedHalaqa?.name || ""}
+        impact={deleteImpact}
+        inputLabel={t("typeNameToConfirm", { name: selectedHalaqa?.name })}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("delete")}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

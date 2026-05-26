@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { sessionsAPI, studentsAPI, teachersAPI } from "../services/api";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
+import { ActionButton } from "../components/ui/action-button";
 import {
   Card,
   CardContent,
@@ -40,12 +41,11 @@ const Sessions = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [sessionsRes, studentsRes, teachersRes] =
-        await Promise.all([
-          sessionsAPI.getAll(),
-          studentsAPI.getAll(),
-          teachersAPI.getAll(),
-        ]);
+      const [sessionsRes, studentsRes, teachersRes] = await Promise.all([
+        sessionsAPI.getAll(),
+        studentsAPI.getAll(),
+        teachersAPI.getAll(),
+      ]);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setTeachers(teachersRes.data);
@@ -61,6 +61,7 @@ const Sessions = () => {
   }, [fetchData]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm(t("deleteSessionConfirmation"))) return;
     try {
       await sessionsAPI.delete(id);
       toast.success(t("sessionDeleted"));
@@ -101,15 +102,15 @@ const Sessions = () => {
               </p>
             </div>
           </div>
-        {canEvaluate() && (
-          <Button
-            onClick={() => navigate("/sessions/new")}
-            className="gap-2 bg-primary hover:bg-primary/90"
-            data-testid="add-session-btn">
-            <Plus className="h-4 w-4" />
-            {t("addSession")}
-          </Button>
-        )}
+          {canEvaluate() && (
+            <Button
+              onClick={() => navigate("/sessions/new")}
+              className="gap-2 bg-primary hover:bg-primary/90"
+              data-testid="add-session-btn">
+              <Plus className="h-4 w-4" />
+              {t("addSession")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -162,7 +163,9 @@ const Sessions = () => {
                         <Badge variant="outline">{session.total_pages}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{session.page_ratings?.length || 0}</Badge>
+                        <Badge variant="outline">
+                          {session.page_ratings?.length || 0}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge className={getScoreColor(session.final_score)}>
@@ -174,21 +177,19 @@ const Sessions = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                          <ActionButton
+                            label={t("viewDetails")}
+                            icon={FileText}
                             onClick={() => navigate(`/sessions/${session.id}`)}
-                            data-testid={`view-session-${session.id}`}>
-                            <FileText className="h-4 w-4" />
-                          </Button>
+                            data-testid={`view-session-${session.id}`}
+                          />
                           {canEvaluate() && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
+                            <ActionButton
+                              label={t("delete")}
+                              icon={Trash2}
                               onClick={() => handleDelete(session.id)}
-                              className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                              className="text-destructive hover:text-destructive"
+                            />
                           )}
                         </div>
                       </TableCell>
@@ -200,7 +201,6 @@ const Sessions = () => {
           </div>
         </CardContent>
       </Card>
-
     </div>
   );
 };

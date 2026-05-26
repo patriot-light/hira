@@ -12,7 +12,12 @@ import {
 } from "../constants/quran";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Label } from "../components/ui/label";
 import {
   Select,
@@ -22,7 +27,14 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { SearchableSelect } from "../components/ui/searchable-select";
-import { ArrowLeft, Loader2, MinusCircle, Phone, Save, MessageCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Copy,
+  Loader2,
+  MinusCircle,
+  Save,
+  MessageCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const getScoreColor = (score) => {
@@ -40,7 +52,9 @@ const getResult = (score) => {
 };
 
 const formatElapsedTime = (totalSeconds) => {
-  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, "0");
   const seconds = (totalSeconds % 60).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
 };
@@ -68,7 +82,10 @@ const SessionForm = () => {
     [teachers, user],
   );
   const pageOptions = useMemo(() => getJuzPages(juz), [juz]);
-  const selectedPages = useMemo(() => getPagesInRange(fromPage, toPage), [fromPage, toPage]);
+  const selectedPages = useMemo(
+    () => getPagesInRange(fromPage, toPage),
+    [fromPage, toPage],
+  );
   const selectedStudent = useMemo(
     () => students.find((student) => student.id === studentId),
     [studentId, students],
@@ -119,14 +136,21 @@ const SessionForm = () => {
 
   useEffect(() => {
     setPageRatings((current) =>
-      Object.fromEntries(selectedPages.map((page) => [page, current[page] || "good"])),
+      Object.fromEntries(
+        selectedPages.map((page) => [page, current[page] || "good"]),
+      ),
     );
   }, [selectedPages]);
 
   const liveScore = useMemo(() => {
     if (!selectedPages.length) return 0;
-    const scoreByRating = Object.fromEntries(SESSION_PAGE_RATINGS.map((rating) => [rating.value, rating.score]));
-    const total = selectedPages.reduce((sum, page) => sum + Number(scoreByRating[pageRatings[page]] || 0), 0);
+    const scoreByRating = Object.fromEntries(
+      SESSION_PAGE_RATINGS.map((rating) => [rating.value, rating.score]),
+    );
+    const total = selectedPages.reduce(
+      (sum, page) => sum + Number(scoreByRating[pageRatings[page]] || 0),
+      0,
+    );
     return Math.round((total / selectedPages.length) * 10) / 10;
   }, [pageRatings, selectedPages]);
   const liveResult = getResult(liveScore);
@@ -175,19 +199,31 @@ const SessionForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" data-testid="session-form-page">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6"
+      data-testid="session-form-page">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <Button variant="ghost" className="mb-2 gap-2 px-0" onClick={() => navigate("/sessions")}>
+          <Button
+            variant="ghost"
+            className="mb-2 gap-2 px-0"
+            onClick={() => navigate("/sessions")}>
             <ArrowLeft className="h-4 w-4" />
             {t("backToSessions")}
           </Button>
-          <h1 className="text-2xl font-bold text-foreground md:text-3xl">{t("addSession")}</h1>
-          <p className="mt-1 text-muted-foreground">{t("newSessionDescription")}</p>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+            {t("addSession")}
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            {t("newSessionDescription")}
+          </p>
         </div>
         <div className="rounded-lg border bg-primary/[0.07] p-4 md:min-w-48">
           <p className="text-sm text-muted-foreground">{t("duration")}</p>
-          <p className="mt-1 text-4xl font-bold text-primary">{formatElapsedTime(elapsedSeconds)}</p>
+          <p className="mt-1 text-4xl font-bold text-primary">
+            {formatElapsedTime(elapsedSeconds)}
+          </p>
         </div>
       </div>
 
@@ -267,17 +303,33 @@ const SessionForm = () => {
             </Select>
           </div>
           <div className="flex items-end gap-2">
-            <Button type="button" variant="outline" disabled={!contactPhone} asChild>
-              <a href={contactPhone ? `tel:${contactPhone}` : undefined}>
-                <Phone className="me-2 h-4 w-4" />
-                {t("call")}
-              </a>
-            </Button>
-            <Button type="button" variant="outline" disabled={!contactPhone} asChild>
-              <a href={contactPhone ? `https://wa.me/${contactPhone.replace(/^\+/, "")}` : undefined} target="_blank" rel="noreferrer">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!contactPhone}
+              asChild>
+              <a
+                href={
+                  contactPhone
+                    ? `https://wa.me/${contactPhone.replace(/^\+/, "")}`
+                    : undefined
+                }
+                target="_blank"
+                rel="noreferrer">
                 <MessageCircle className="me-2 h-4 w-4" />
                 {t("whatsapp")}
               </a>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!contactPhone}
+              onClick={async () => {
+                await navigator.clipboard?.writeText(contactPhone);
+                toast.success(t("copied"));
+              }}>
+              <Copy className="me-2 h-4 w-4" />
+              {t("copy")}
             </Button>
           </div>
         </CardContent>
@@ -294,7 +346,9 @@ const SessionForm = () => {
                 <Label className="mb-2 block text-xs font-bold uppercase text-muted-foreground">
                   {t("page")} {page}
                 </Label>
-                <Select value={pageRatings[page] || "good"} onValueChange={(value) => updatePageRating(page, value)}>
+                <Select
+                  value={pageRatings[page] || "good"}
+                  onValueChange={(value) => updatePageRating(page, value)}>
                   <SelectTrigger className="h-10 bg-background">
                     <SelectValue />
                   </SelectTrigger>
@@ -315,7 +369,9 @@ const SessionForm = () => {
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
             <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
-            <Badge className={`${getScoreColor(liveScore)} mt-3`}>{t(liveResult)}</Badge>
+            <Badge className={`${getScoreColor(liveScore)} mt-3`}>
+              {t(liveResult)}
+            </Badge>
             <div className="mt-5 space-y-2">
               <div className="flex justify-between text-sm">
                 <span>{t("totalPages")}</span>
@@ -327,7 +383,10 @@ const SessionForm = () => {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => navigate("/sessions")}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate("/sessions")}>
           <MinusCircle className="me-2 h-4 w-4" />
           {t("cancel")}
         </Button>

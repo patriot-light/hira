@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { studentsAPI, halaqasAPI, exportAPI } from "../services/api";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
+import { ActionButton } from "../components/ui/action-button";
+import { PhoneActions } from "../components/ui/phone-actions";
+import { TypedDeleteDialog } from "../components/ui/typed-delete-dialog";
 import { SearchableMultiSelect } from "../components/ui/searchable-multi-select";
 import {
   Dialog,
@@ -30,12 +28,6 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import {
   Table,
   TableBody,
   TableCell,
@@ -44,12 +36,9 @@ import {
   TableRow,
 } from "../components/ui/table";
 import {
-  Plus,
   Search,
-  MoreVertical,
   Edit,
   Trash2,
-  Download,
   FileSpreadsheet,
   FileText,
   Users,
@@ -57,6 +46,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import { halaqaLabel, studentHalaqaIds } from "../lib/halaqa";
 
 const Students = () => {
   const { t } = useTranslation();
@@ -154,7 +144,8 @@ const Students = () => {
       password: "",
       status: student.status || "active",
       halaqa_id: student.halaqa_id || "",
-      halaqa_ids: student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []),
+      halaqa_ids:
+        student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []),
     });
     setDialogOpen(true);
   };
@@ -245,11 +236,15 @@ const Students = () => {
   );
 
   const getHalaqaNames = (student) => {
-    const ids = student.halaqa_ids || (student.halaqa_id ? [student.halaqa_id] : []);
-    const names = ids
-      .map((id) => halaqas.find((halaqa) => halaqa.id === id)?.name)
+    const matched = studentHalaqaIds(student)
+      .map((id) => halaqas.find((halaqa) => halaqa.id === id))
       .filter(Boolean);
-    return names.length ? names.join(", ") : "-";
+    return matched;
+  };
+
+  const getDeleteImpact = () => {
+    const count = getHalaqaNames(selectedStudent).length;
+    return count ? t("deleteStudentImpact", { count }) : "";
   };
 
   if (loading) {
@@ -279,46 +274,33 @@ const Students = () => {
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-          {canManage() && (
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="gap-2 bg-white/85"
-                    data-testid="export-btn"
-                  >
-                    <Download className="h-4 w-4" />
-                    {t("export")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={handleExportExcel}
-                    data-testid="export-excel-btn"
-                  >
-                    <FileSpreadsheet className="h-4 w-4 me-2" />
-                    {t("exportExcel")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleExportPdf}
-                    data-testid="export-pdf-btn"
-                  >
-                    <FileText className="h-4 w-4 me-2" />
-                    {t("exportPdf")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                onClick={() => navigate("/students/new")}
-                className="gap-2 bg-primary hover:bg-primary/90"
-                data-testid="add-student-btn"
-              >
-                <UserPlus className="h-4 w-4" />
-                {t("addStudent")}
-              </Button>
-            </>
-          )}
+            {canManage() && (
+              <>
+                <Button
+                  variant="outline"
+                  className="gap-2 bg-white/85"
+                  onClick={handleExportExcel}
+                  data-testid="export-excel-btn">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  {t("exportExcel")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="gap-2 bg-white/85"
+                  onClick={handleExportPdf}
+                  data-testid="export-pdf-btn">
+                  <FileText className="h-4 w-4" />
+                  {t("exportPdf")}
+                </Button>
+                <Button
+                  onClick={() => navigate("/students/new")}
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                  data-testid="add-student-btn">
+                  <UserPlus className="h-4 w-4" />
+                  {t("addStudent")}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -347,8 +329,12 @@ const Students = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("fullName")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("fatherName")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("motherName")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("fatherName")}
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("motherName")}
+                  </TableHead>
                   <TableHead className="hidden md:table-cell">
                     {t("studentPhone")}
                   </TableHead>
@@ -366,8 +352,7 @@ const Students = () => {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="text-center py-8 text-muted-foreground"
-                    >
+                      className="text-center py-8 text-muted-foreground">
                       {t("noData")}
                     </TableCell>
                   </TableRow>
@@ -375,24 +360,40 @@ const Students = () => {
                   filteredStudents.map((student) => (
                     <TableRow
                       key={student.id}
-                      data-testid={`student-row-${student.id}`}
-                    >
+                      data-testid={`student-row-${student.id}`}>
                       <TableCell className="font-medium">
                         <button
                           type="button"
                           className="text-start font-semibold text-primary hover:underline"
-                          onClick={() => navigate(`/students/${student.id}`)}
-                        >
+                          onClick={() => navigate(`/students/${student.id}`)}>
                           {student.full_name}
                         </button>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">{student.father_name || "-"}</TableCell>
-                      <TableCell className="hidden md:table-cell">{student.mother_name || "-"}</TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {student.phone || "-"}
+                        {student.father_name || "-"}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {getHalaqaNames(student)}
+                        {student.mother_name || "-"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <PhoneActions phone={student.phone} />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          {getHalaqaNames(student).length
+                            ? getHalaqaNames(student).map((halaqa) => (
+                                <button
+                                  key={halaqa.id}
+                                  type="button"
+                                  className="text-start text-primary hover:underline"
+                                  onClick={() =>
+                                    navigate(`/halaqas/${halaqa.id}`)
+                                  }>
+                                  {halaqaLabel(halaqa, t)}
+                                </button>
+                              ))
+                            : "-"}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -405,58 +406,50 @@ const Students = () => {
                             student.status === "active"
                               ? "bg-green-100 text-green-700"
                               : ""
-                          }
-                        >
+                          }>
                           {t(student.status)}
                         </Badge>
                       </TableCell>
-                      {(canManage() || canRaiseForExam() || isExamTeacher()) && (
+                      {(canManage() ||
+                        canRaiseForExam() ||
+                        isExamTeacher()) && (
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                data-testid={`student-actions-${student.id}`}
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {isExamTeacher() && (
-                                <DropdownMenuItem onClick={() => openExamEvaluation(student)}>
-                                  <FileText className="h-4 w-4 me-2" />
-                                  {t("addExamEvaluation")}
-                                </DropdownMenuItem>
-                              )}
-                              {canRaiseForExam() && (
-                                <DropdownMenuItem onClick={() => openExamDialog(student)}>
-                                  <FileText className="h-4 w-4 me-2" />
-                                  {t("raiseNameForExam")}
-                                </DropdownMenuItem>
-                              )}
-                              {canManage() && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={() => navigate(`/students/${student.id}/edit`)}
-                                  >
-                                    <Edit className="h-4 w-4 me-2" />
-                                    {t("edit")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedStudent(student);
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                    className="text-destructive"
-                                  >
-                                    <Trash2 className="h-4 w-4 me-2" />
-                                    {t("delete")}
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex items-center gap-1">
+                            {isExamTeacher() && (
+                              <ActionButton
+                                label={t("addExamEvaluation")}
+                                icon={FileText}
+                                onClick={() => openExamEvaluation(student)}
+                              />
+                            )}
+                            {canRaiseForExam() && (
+                              <ActionButton
+                                label={t("raiseNameForExam")}
+                                icon={FileText}
+                                onClick={() => openExamDialog(student)}
+                              />
+                            )}
+                            {canManage() && (
+                              <>
+                                <ActionButton
+                                  label={t("edit")}
+                                  icon={Edit}
+                                  onClick={() =>
+                                    navigate(`/students/${student.id}/edit`)
+                                  }
+                                />
+                                <ActionButton
+                                  label={t("delete")}
+                                  icon={Trash2}
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => {
+                                    setSelectedStudent(student);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                />
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -516,8 +509,7 @@ const Students = () => {
                     value={formData.status}
                     onValueChange={(value) =>
                       setFormData({ ...formData, status: value })
-                    }
-                  >
+                    }>
                     <SelectTrigger data-testid="student-status-select">
                       <SelectValue />
                     </SelectTrigger>
@@ -606,6 +598,7 @@ const Students = () => {
                   placeholder={t("selectHalaqas")}
                   searchPlaceholder={t("searchHalaqas")}
                   emptyLabel={t("noData")}
+                  getOptionLabel={(halaqa) => halaqaLabel(halaqa, t)}
                 />
               </div>
             </div>
@@ -613,15 +606,13 @@ const Students = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
+                onClick={() => setDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button
                 type="submit"
                 className="bg-primary hover:bg-primary/90"
-                data-testid="save-student-btn"
-              >
+                data-testid="save-student-btn">
                 {t("save")}
               </Button>
             </DialogFooter>
@@ -634,7 +625,9 @@ const Students = () => {
           <DialogHeader>
             <DialogTitle>{t("raiseNameForExam")}</DialogTitle>
             <DialogDescription>
-              {t("raiseNameForExamDescription", { name: selectedStudent?.full_name })}
+              {t("raiseNameForExamDescription", {
+                name: selectedStudent?.full_name,
+              })}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRaiseForExam} className="space-y-4">
@@ -647,7 +640,10 @@ const Students = () => {
                   max="30"
                   value={examRange.from_juz}
                   onChange={(event) =>
-                    setExamRange((current) => ({ ...current, from_juz: event.target.value }))
+                    setExamRange((current) => ({
+                      ...current,
+                      from_juz: event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -659,13 +655,19 @@ const Students = () => {
                   max="30"
                   value={examRange.to_juz}
                   onChange={(event) =>
-                    setExamRange((current) => ({ ...current, to_juz: event.target.value }))
+                    setExamRange((current) => ({
+                      ...current,
+                      to_juz: event.target.value,
+                    }))
                   }
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setExamDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setExamDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
@@ -676,34 +678,22 @@ const Students = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("confirm")}</DialogTitle>
-            <DialogDescription>
-              {t("deleteStudentConfirmation", {
-                name: selectedStudent?.full_name,
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              data-testid="confirm-delete-btn"
-            >
-              {t("delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TypedDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={t("confirm")}
+        description={t("deleteStudentConfirmation", {
+          name: selectedStudent?.full_name,
+        })}
+        name={selectedStudent?.full_name || ""}
+        impact={getDeleteImpact()}
+        inputLabel={t("typeNameToConfirm", {
+          name: selectedStudent?.full_name,
+        })}
+        cancelLabel={t("cancel")}
+        confirmLabel={t("delete")}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

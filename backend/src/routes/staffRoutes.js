@@ -5,7 +5,11 @@ const service = require("../services/profileService");
 
 router.get("/", requireRoles("admin"), async (req, res, next) => {
   try {
-    res.json(await getCollection("staff").find({}, { projection: { _id: 0 } }).toArray());
+    res.json(
+      await getCollection("staff")
+        .find({}, { projection: { _id: 0 } })
+        .toArray(),
+    );
   } catch (error) {
     next(error);
   }

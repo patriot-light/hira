@@ -172,7 +172,9 @@ const EvaluationDetails = () => {
                   <TableHead>{t("page")}</TableHead>
                   <TableHead>{t("word")}</TableHead>
                   <TableHead>{t("deduction")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("note")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("note")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 

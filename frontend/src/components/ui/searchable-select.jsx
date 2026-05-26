@@ -111,8 +111,7 @@ const SearchableSelect = ({
               left: menuRect.left,
               width: menuRect.width,
               maxHeight: menuRect.maxHeight,
-            }}
-          >
+            }}>
             <div className="border-b p-2">
               <div className="relative">
                 <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -125,7 +124,9 @@ const SearchableSelect = ({
                 />
               </div>
             </div>
-            <div className="overflow-y-auto p-1" style={{ maxHeight: menuRect.maxHeight - 58 }}>
+            <div
+              className="overflow-y-auto p-1"
+              style={{ maxHeight: menuRect.maxHeight - 58 }}>
               {filteredOptions.length ? (
                 filteredOptions.map((option) => {
                   const optionValue = getOptionValue(option);
@@ -139,8 +140,7 @@ const SearchableSelect = ({
                         selected && "bg-muted",
                       )}
                       onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => chooseOption(option)}
-                    >
+                      onClick={() => chooseOption(option)}>
                       <span className="truncate">{getOptionLabel(option)}</span>
                       {selected && <Check className="h-4 w-4 text-primary" />}
                     </button>
@@ -165,9 +165,12 @@ const SearchableSelect = ({
         variant="outline"
         disabled={disabled}
         className="h-11 w-full justify-start bg-white/85 px-3 font-normal"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <span className={cn("truncate", !selectedOption && "text-muted-foreground")}>
+        onClick={() => setOpen((current) => !current)}>
+        <span
+          className={cn(
+            "truncate",
+            !selectedOption && "text-muted-foreground",
+          )}>
           {selectedOption ? getOptionLabel(selectedOption) : placeholder}
         </span>
       </Button>

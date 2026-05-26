@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import { reportsAPI, halaqasAPI, sessionsAPI } from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Progress } from '../components/ui/progress';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
-  Mic2, 
-  TrendingUp, 
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import { reportsAPI, halaqasAPI, sessionsAPI } from "../services/api";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Progress } from "../components/ui/progress";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import {
+  Users,
+  GraduationCap,
+  BookOpen,
+  Mic2,
+  TrendingUp,
   Calendar,
   ClipboardCheck,
   Award,
@@ -20,8 +25,8 @@ import {
   CheckCircle2,
   Clock3,
   FileBarChart,
-  PlusCircle
-} from 'lucide-react';
+  PlusCircle,
+} from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -32,8 +37,9 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
-} from 'recharts';
+  Cell,
+} from "recharts";
+import { halaqaLabel } from "../lib/halaqa";
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -52,19 +58,19 @@ const Dashboard = () => {
       const [statsRes, halaqasRes, sessionsRes] = await Promise.all([
         reportsAPI.getDashboard(),
         halaqasAPI.getAll(),
-        sessionsAPI.getAll()
+        sessionsAPI.getAll(),
       ]);
       setStats(statsRes.data);
       setHalaqas(halaqasRes.data);
       setSessions(sessionsRes.data);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const COLORS = ['#12a89d', '#2ab572', '#d97706', '#ef4444'];
+  const COLORS = ["#12a89d", "#2ab572", "#d97706", "#ef4444"];
 
   const quickActions = [
     {
@@ -103,33 +109,42 @@ const Dashboard = () => {
 
   const getLevelColor = (level) => {
     switch (level) {
-      case 'beginner': return 'bg-blue-100 text-blue-700';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-700';
-      case 'advanced': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "beginner":
+        return "bg-blue-100 text-blue-700";
+      case "intermediate":
+        return "bg-yellow-100 text-yellow-700";
+      case "advanced":
+        return "bg-green-100 text-green-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   const getResultColor = (result) => {
     switch (result) {
-      case 'excellent': return 'bg-green-100 text-green-700';
-      case 'very_good': return 'bg-blue-100 text-blue-700';
-      case 'good': return 'bg-yellow-100 text-yellow-700';
-      case 'needs_review': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "excellent":
+        return "bg-green-100 text-green-700";
+      case "very_good":
+        return "bg-blue-100 text-blue-700";
+      case "good":
+        return "bg-yellow-100 text-yellow-700";
+      case "needs_review":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   // Prepare chart data from sessions
   const chartData = sessions.slice(-7).map((session, index) => ({
-    name: `${t('sessions')} ${index + 1}`,
-    score: session.final_score || 0
+    name: `${t("sessions")} ${index + 1}`,
+    score: session.final_score || 0,
   }));
 
   // Error breakdown pie chart data
   const errorData = sessions.reduce((acc, session) => {
-    (session.errors || []).forEach(error => {
-      const existing = acc.find(e => e.name === error.category);
+    (session.errors || []).forEach((error) => {
+      const existing = acc.find((e) => e.name === error.category);
       if (existing) {
         existing.value += 1;
       } else {
@@ -142,7 +157,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse-soft text-primary">{t('loading')}</div>
+        <div className="animate-pulse-soft text-primary">{t("loading")}</div>
       </div>
     );
   }
@@ -153,17 +168,19 @@ const Dashboard = () => {
       <div className="page-hero rounded-lg p-5 md:p-7">
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr] xl:items-stretch">
           <div className="max-w-3xl">
-            <Badge className="mb-4 bg-white/80 text-primary hover:bg-white/80" variant="outline">
+            <Badge
+              className="mb-4 bg-white/80 text-primary hover:bg-white/80"
+              variant="outline">
               <CheckCircle2 className="me-1 h-3.5 w-3.5" />
               {t(user?.role)}
             </Badge>
             <h1 className="text-3xl font-bold leading-tight text-foreground md:text-4xl">
-              {t('welcomeBack')}, {user?.full_name}
+              {t("welcomeBack")}, {user?.full_name}
             </h1>
             <p className="mt-3 text-base font-medium text-slate-600 md:text-lg">
-              {isStudent() 
-                ? t('trackMemorizationProgress')
-                : t('instituteOverview')}
+              {isStudent()
+                ? t("trackMemorizationProgress")
+                : t("instituteOverview")}
             </p>
             {quickActions.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-2">
@@ -190,7 +207,7 @@ const Dashboard = () => {
                 </span>
                 <div>
                   <p className="text-xs font-bold uppercase text-muted-foreground">
-                    {t('todaySchedule')}
+                    {t("todaySchedule")}
                   </p>
                   <p className="text-lg font-bold">{sessions.length}</p>
                 </div>
@@ -203,7 +220,7 @@ const Dashboard = () => {
                 </span>
                 <div>
                   <p className="text-xs font-bold uppercase text-muted-foreground">
-                    {t('recentActivity')}
+                    {t("recentActivity")}
                   </p>
                   <p className="text-lg font-bold">{halaqas.length}</p>
                 </div>
@@ -219,15 +236,17 @@ const Dashboard = () => {
             <Link
               key={action.to}
               to={action.to}
-              className="task-tile group rounded-lg p-5"
-            >
+              className="task-tile group rounded-lg p-5">
               <div className="flex items-start justify-between gap-4">
-                <span className={`flex h-14 w-14 items-center justify-center rounded-lg ${action.color}`}>
+                <span
+                  className={`flex h-14 w-14 items-center justify-center rounded-lg ${action.color}`}>
                   <action.icon className="h-6 w-6" />
                 </span>
                 <ArrowUpRight className="h-5 w-5 text-muted-foreground transition group-hover:text-primary" />
               </div>
-              <h3 className="mt-5 text-xl font-bold text-foreground">{action.title}</h3>
+              <h3 className="mt-5 text-xl font-bold text-foreground">
+                {action.title}
+              </h3>
               <p className="mt-2 line-clamp-2 text-sm font-medium text-muted-foreground">
                 {action.detail}
               </p>
@@ -243,11 +262,15 @@ const Dashboard = () => {
             <CardContent className="relative p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-muted-foreground">{t('students')}</p>
-                  <p className="mt-2 text-4xl font-bold">{stats.total_students}</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    {t("students")}
+                  </p>
+                  <p className="mt-2 text-4xl font-bold">
+                    {stats.total_students}
+                  </p>
                   <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary">
                     <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t('active')}
+                    {t("active")}
                   </p>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -261,11 +284,15 @@ const Dashboard = () => {
             <CardContent className="relative p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-muted-foreground">{t('teachers')}</p>
-                  <p className="mt-2 text-4xl font-bold">{stats.total_teachers}</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    {t("teachers")}
+                  </p>
+                  <p className="mt-2 text-4xl font-bold">
+                    {stats.total_teachers}
+                  </p>
                   <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-secondary">
                     <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t('staff')}
+                    {t("staff")}
                   </p>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
@@ -279,11 +306,15 @@ const Dashboard = () => {
             <CardContent className="relative p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-muted-foreground">{t('halaqas')}</p>
-                  <p className="mt-2 text-4xl font-bold">{stats.total_halaqas}</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    {t("halaqas")}
+                  </p>
+                  <p className="mt-2 text-4xl font-bold">
+                    {stats.total_halaqas}
+                  </p>
                   <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent">
                     <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t('schedule')}
+                    {t("schedule")}
                   </p>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-accent/10 text-accent">
@@ -297,11 +328,15 @@ const Dashboard = () => {
             <CardContent className="relative p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-muted-foreground">{t('sessions')}</p>
-                  <p className="mt-2 text-4xl font-bold">{stats.total_sessions}</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    {t("sessions")}
+                  </p>
+                  <p className="mt-2 text-4xl font-bold">
+                    {stats.total_sessions}
+                  </p>
                   <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-sky-600">
                     <ArrowUpRight className="h-3.5 w-3.5" />
-                    {t('totalSessions')}
+                    {t("totalSessions")}
                   </p>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
@@ -322,7 +357,7 @@ const Dashboard = () => {
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <TrendingUp className="h-5 w-5" />
               </span>
-              {t('progressChart')}
+              {t("progressChart")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -331,27 +366,27 @@ const Dashboard = () => {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#12a89d" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#12a89d" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#12a89d" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#12a89d" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
                   <YAxis stroke="#64748b" fontSize={12} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px'
-                    }} 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "12px",
+                    }}
                   />
-                  <Area 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="#12a89d" 
+                  <Area
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#12a89d"
                     strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorScore)" 
+                    fillOpacity={1}
+                    fill="url(#colorScore)"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -367,7 +402,7 @@ const Dashboard = () => {
                 <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
                   <ClipboardCheck className="h-5 w-5" />
                 </span>
-                {t('errorBreakdown')}
+                {t("errorBreakdown")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -381,10 +416,12 @@ const Dashboard = () => {
                       innerRadius={40}
                       outerRadius={70}
                       paddingAngle={5}
-                      dataKey="value"
-                    >
+                      dataKey="value">
                       {errorData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -393,12 +430,11 @@ const Dashboard = () => {
               </div>
               <div className="flex flex-wrap gap-2 justify-center mt-2">
                 {errorData.map((entry, index) => (
-                  <Badge 
-                    key={entry.name} 
+                  <Badge
+                    key={entry.name}
                     variant="outline"
                     className="text-xs"
-                    style={{ borderColor: COLORS[index % COLORS.length] }}
-                  >
+                    style={{ borderColor: COLORS[index % COLORS.length] }}>
                     {t(entry.name)}: {entry.value}
                   </Badge>
                 ))}
@@ -417,26 +453,31 @@ const Dashboard = () => {
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <BookOpen className="h-5 w-5" />
               </span>
-              {isStudent() ? t('myProgress') : t('halaqas')}
+              {isStudent() ? t("myProgress") : t("halaqas")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {halaqas.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{t('noData')}</p>
+              <p className="text-muted-foreground text-center py-4">
+                {t("noData")}
+              </p>
             ) : (
               halaqas.slice(0, 4).map((halaqa) => (
-                <div 
-                  key={halaqa.id} 
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4"
-                >
+                <div
+                  key={halaqa.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center">
                       <BookOpen className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{halaqa.name}</p>
+                      <Link
+                        to={`/halaqas/${halaqa.id}`}
+                        className="font-medium text-primary hover:underline">
+                        {halaqaLabel(halaqa, t)}
+                      </Link>
                       <p className="text-sm text-muted-foreground">
-                        {halaqa.schedule?.length || 0} {t('days')}
+                        {halaqa.schedule?.length || 0} {t("days")}
                       </p>
                     </div>
                   </div>
@@ -456,39 +497,47 @@ const Dashboard = () => {
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
                 <Mic2 className="h-5 w-5" />
               </span>
-              {t('recentActivity')}
+              {t("recentActivity")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {sessions.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{t('noData')}</p>
+              <p className="text-muted-foreground text-center py-4">
+                {t("noData")}
+              </p>
             ) : (
-              sessions.slice(-4).reverse().map((session) => (
-                <div 
-                  key={session.id} 
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-lg bg-secondary/10 flex items-center justify-center">
-                      <Award className="h-5 w-5 text-secondary" />
+              sessions
+                .slice(-4)
+                .reverse()
+                .map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-white/70 p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-lg bg-secondary/10 flex items-center justify-center">
+                        <Award className="h-5 w-5 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {t("tasmee")}: {session.from_page} - {session.to_page}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {session.duration_minutes} {t("minutes")}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">
-                        {t('tasmee')}: {session.from_page} - {session.to_page}
+                    <div className="text-end">
+                      <p className="font-bold text-primary">
+                        {session.final_score?.toFixed(0)}%
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {session.duration_minutes} {t('minutes')}
-                      </p>
+                      <Badge
+                        className={getResultColor(session.result)}
+                        variant="outline">
+                        {t(session.result)}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="text-end">
-                    <p className="font-bold text-primary">{session.final_score?.toFixed(0)}%</p>
-                    <Badge className={getResultColor(session.result)} variant="outline">
-                      {t(session.result)}
-                    </Badge>
-                  </div>
-                </div>
-              ))
+                ))
             )}
           </CardContent>
         </Card>
@@ -501,7 +550,7 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t('averageScore')} ({t('pageEvaluation')})
+                  {t("averageScore")} ({t("pageEvaluation")})
                 </span>
                 <span className="text-2xl font-bold text-primary">
                   {stats.average_page_score}%
@@ -515,13 +564,16 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t('averageScore')} ({t('tasmee')})
+                  {t("averageScore")} ({t("tasmee")})
                 </span>
                 <span className="text-2xl font-bold text-secondary">
                   {stats.average_session_score}%
                 </span>
               </div>
-              <Progress value={stats.average_session_score} className="h-2 [&>div]:bg-secondary" />
+              <Progress
+                value={stats.average_session_score}
+                className="h-2 [&>div]:bg-secondary"
+              />
             </CardContent>
           </Card>
         </div>

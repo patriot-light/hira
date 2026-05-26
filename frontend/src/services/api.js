@@ -41,8 +41,7 @@ export const authAPI = {
 // Users API
 export const usersAPI = {
   getAll: () => api.get("/users"),
-  updateRole: (userId, role) =>
-    api.put(`/users/${userId}/role`, { role }),
+  updateRole: (userId, role) => api.put(`/users/${userId}/role`, { role }),
   delete: (userId) => api.delete(`/users/${userId}`),
 };
 
@@ -174,6 +173,7 @@ export const certificatesAPI = {
 export const notificationsAPI = {
   getAll: () => api.get("/notifications"),
   markAllRead: () => api.put("/notifications/read-all"),
+  markRead: (id) => api.put(`/notifications/${id}/read`),
   dismiss: (id) => api.put(`/notifications/${id}/dismiss`),
 };
 

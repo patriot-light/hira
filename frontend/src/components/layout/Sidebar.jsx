@@ -27,15 +27,60 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { language, toggleLanguage, isRTL } = useLanguage();
 
   const navItems = [
-    { to: "/dashboard", icon: LayoutDashboard, label: t("dashboard"), roles: ["admin", "staff", "teacher", "exam_teacher", "student"] },
-    { to: "/students", icon: Users, label: t("students"), roles: ["admin", "staff", "teacher", "exam_teacher"] },
-    { to: "/teachers", icon: GraduationCap, label: t("teachers"), roles: ["admin", "staff"] },
-    { to: "/halaqas", icon: BookOpen, label: t("halaqas"), roles: ["admin", "staff", "teacher", "student"] },
-    { to: "/evaluations", icon: ClipboardCheck, label: t("evaluations"), roles: ["admin", "staff", "teacher", "exam_teacher", "student"] },
-    { to: "/sessions", icon: Mic2, label: t("sessions"), roles: ["admin", "staff", "teacher", "student"] },
-    { to: "/configuration", icon: Settings, label: t("configuration"), roles: ["admin", "staff"] },
-    { to: "/reports", icon: BarChart3, label: t("reports"), roles: ["admin", "staff", "teacher"] },
-    { to: "/certificates", icon: ClipboardCheck, label: t("certificates"), roles: ["admin"] },
+    {
+      to: "/dashboard",
+      icon: LayoutDashboard,
+      label: t("dashboard"),
+      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
+    },
+    {
+      to: "/students",
+      icon: Users,
+      label: t("students"),
+      roles: ["admin", "staff", "teacher", "exam_teacher"],
+    },
+    {
+      to: "/teachers",
+      icon: GraduationCap,
+      label: t("teachers"),
+      roles: ["admin", "staff"],
+    },
+    {
+      to: "/halaqas",
+      icon: BookOpen,
+      label: t("halaqas"),
+      roles: ["admin", "staff", "teacher", "student"],
+    },
+    {
+      to: "/evaluations",
+      icon: ClipboardCheck,
+      label: t("evaluations"),
+      roles: ["admin", "staff", "teacher", "exam_teacher", "student"],
+    },
+    {
+      to: "/sessions",
+      icon: Mic2,
+      label: t("sessions"),
+      roles: ["admin", "staff", "teacher", "student"],
+    },
+    {
+      to: "/configuration",
+      icon: Settings,
+      label: t("configuration"),
+      roles: ["admin", "staff"],
+    },
+    {
+      to: "/reports",
+      icon: BarChart3,
+      label: t("reports"),
+      roles: ["admin", "staff", "teacher"],
+    },
+    {
+      to: "/certificates",
+      icon: ClipboardCheck,
+      label: t("certificates"),
+      roles: ["admin"],
+    },
     { to: "/users", icon: UserCog, label: t("users"), roles: ["admin"] },
   ];
 
@@ -61,12 +106,15 @@ const Sidebar = ({ isOpen, onClose }) => {
             : isRTL()
               ? "translate-x-full md:translate-x-0"
               : "-translate-x-full md:translate-x-0",
-        )}
-      >
+        )}>
         <div className="flex min-h-28 items-center justify-between border-b border-white/10 px-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white shadow-xl">
-              <img src={logo} alt="Hira Logo" className="h-11 w-11 object-contain" />
+              <img
+                src={logo}
+                alt="Hira Logo"
+                className="h-11 w-11 object-contain"
+              />
             </div>
             <div className="min-w-0">
               <span className="block truncate text-xl font-bold">
@@ -82,16 +130,19 @@ const Sidebar = ({ isOpen, onClose }) => {
             size="icon"
             className="text-white hover:bg-white/10 hover:text-white md:hidden"
             onClick={onClose}
-            data-testid="close-sidebar-btn"
-          >
+            data-testid="close-sidebar-btn">
             <X className="h-5 w-5" />
           </Button>
         </div>
 
         <div className="px-5 pt-5">
           <div className="rounded-lg border border-white/10 bg-white/[0.08] p-4">
-            <p className="text-xs font-bold uppercase text-white/55">{t("welcomeBack")}</p>
-            <p className="mt-1 truncate text-base font-bold">{user?.full_name}</p>
+            <p className="text-xs font-bold uppercase text-white/55">
+              {t("welcomeBack")}
+            </p>
+            <p className="mt-1 truncate text-base font-bold">
+              {user?.full_name}
+            </p>
           </div>
         </div>
 
@@ -109,8 +160,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     : "text-white/78 hover:bg-white/10 hover:text-white",
                 )
               }
-              data-testid={`nav-${item.to.slice(1)}`}
-            >
+              data-testid={`nav-${item.to.slice(1)}`}>
               <item.icon className="h-5 w-5 shrink-0" />
               <span className="truncate">{item.label}</span>
             </NavLink>
@@ -122,8 +172,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             variant="outline"
             className="w-full justify-start border-white/15 bg-white/10 text-white hover:bg-white hover:text-[hsl(181_56%_18%)]"
             onClick={toggleLanguage}
-            data-testid="language-toggle-btn"
-          >
+            data-testid="language-toggle-btn">
             <Globe className="h-5 w-5" />
             <span>{language === "en" ? "العربية" : "English"}</span>
           </Button>
@@ -131,8 +180,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             variant="ghost"
             className="w-full justify-start text-white/80 hover:bg-red-500/15 hover:text-white"
             onClick={logout}
-            data-testid="logout-btn"
-          >
+            data-testid="logout-btn">
             <LogOut className="h-5 w-5" />
             <span>{t("logout")}</span>
           </Button>

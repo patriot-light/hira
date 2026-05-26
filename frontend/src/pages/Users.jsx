@@ -1,15 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usersAPI } from "../services/api";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
+import { ActionButton } from "../components/ui/action-button";
 import {
   Dialog,
   DialogContent,
@@ -26,12 +22,6 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import {
   Table,
   TableBody,
   TableCell,
@@ -39,14 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import {
-  Search,
-  MoreVertical,
-  Trash2,
-  UserCog,
-  Loader2,
-  Shield,
-} from "lucide-react";
+import { Search, Trash2, UserCog, Loader2, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 const Users = () => {
@@ -208,32 +191,22 @@ const Users = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              data-testid={`user-actions-${user.id}`}>
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => openRoleDialog(user)}>
-                              <Shield className="h-4 w-4 me-2" />
-                              {t("changeRole")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setDeleteDialogOpen(true);
-                              }}
-                              className="text-destructive">
-                              <Trash2 className="h-4 w-4 me-2" />
-                              {t("delete")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-1">
+                          <ActionButton
+                            label={t("changeRole")}
+                            icon={Shield}
+                            onClick={() => openRoleDialog(user)}
+                          />
+                          <ActionButton
+                            label={t("delete")}
+                            icon={Trash2}
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

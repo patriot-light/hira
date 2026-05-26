@@ -10,30 +10,42 @@ router.get("/error-types", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/error-types", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.createErrorType(req.body));
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/error-types",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(await service.createErrorType(req.body));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.put("/error-types/:id", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.updateErrorType(req.params.id, req.body));
-  } catch (error) {
-    next(error);
-  }
-});
+router.put(
+  "/error-types/:id",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(await service.updateErrorType(req.params.id, req.body));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.delete("/error-types/:id", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    await service.deleteErrorType(req.params.id);
-    res.json({ message: "Error type deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/error-types/:id",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      await service.deleteErrorType(req.params.id);
+      res.json({ message: "Error type deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get("/exams", authenticate, async (req, res, next) => {
   try {
@@ -43,13 +55,17 @@ router.get("/exams", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/exams", requireRoles("admin", "staff", "teacher", "exam_teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.createExam(req.body, req.user));
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/exams",
+  requireRoles("admin", "staff", "teacher", "exam_teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(await service.createExam(req.body, req.user));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get("/exams/:id", authenticate, async (req, res, next) => {
   try {
@@ -59,14 +75,18 @@ router.get("/exams/:id", authenticate, async (req, res, next) => {
   }
 });
 
-router.delete("/exams/:id", requireRoles("admin", "staff", "teacher", "exam_teacher"), async (req, res, next) => {
-  try {
-    await service.remove("exam_evaluations", req.params.id);
-    res.json({ message: "Evaluation deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/exams/:id",
+  requireRoles("admin", "staff", "teacher", "exam_teacher"),
+  async (req, res, next) => {
+    try {
+      await service.remove("exam_evaluations", req.params.id);
+      res.json({ message: "Evaluation deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get("/pages", authenticate, async (req, res, next) => {
   try {
@@ -76,22 +96,30 @@ router.get("/pages", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/pages", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.createPage(req.body, req.user));
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/pages",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(await service.createPage(req.body, req.user));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.delete("/pages/:id", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    await service.remove("page_evaluations", req.params.id);
-    res.json({ message: "Evaluation deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/pages/:id",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      await service.remove("page_evaluations", req.params.id);
+      res.json({ message: "Evaluation deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get("/juz", authenticate, async (req, res, next) => {
   try {
@@ -101,21 +129,29 @@ router.get("/juz", authenticate, async (req, res, next) => {
   }
 });
 
-router.post("/juz", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    res.json(await service.createJuz(req.body, req.user));
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  "/juz",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      res.json(await service.createJuz(req.body, req.user));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.delete("/juz/:id", requireRoles("admin", "staff", "teacher"), async (req, res, next) => {
-  try {
-    await service.remove("juz_evaluations", req.params.id);
-    res.json({ message: "Evaluation deleted successfully" });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  "/juz/:id",
+  requireRoles("admin", "staff", "teacher"),
+  async (req, res, next) => {
+    try {
+      await service.remove("juz_evaluations", req.params.id);
+      res.json({ message: "Evaluation deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 module.exports = router;

@@ -12,7 +12,12 @@ import {
 import { JUZ_OPTIONS, getJuzPagesRange } from "../constants/quran";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import {
@@ -24,10 +29,23 @@ import {
 } from "../components/ui/select";
 import { SearchableSelect } from "../components/ui/searchable-select";
 import { Textarea } from "../components/ui/textarea";
-import { ArrowLeft, Award, BookOpenCheck, Loader2, MinusCircle, Plus, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  BookOpenCheck,
+  Loader2,
+  MinusCircle,
+  Plus,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
 
-const CORE_FIELD_KEYS = ["studentName", "degree", "issueDate", "certificateNumber"];
+const CORE_FIELD_KEYS = [
+  "studentName",
+  "degree",
+  "issueDate",
+  "certificateNumber",
+];
 
 const getScoreColor = (score) => {
   if (score >= 90) return "bg-green-100 text-green-700";
@@ -44,7 +62,9 @@ const getResult = (score) => {
 };
 
 function downloadBlob(response, filename) {
-  const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: "application/pdf" }),
+  );
   const link = document.createElement("a");
   link.href = url;
   link.setAttribute("download", filename);
@@ -95,15 +115,20 @@ const EvaluationForm = () => {
     [exam.student_id, students],
   );
   const selectedTemplate = useMemo(
-    () => templates.find((template) => template.id === certificateForm.template_id),
+    () =>
+      templates.find((template) => template.id === certificateForm.template_id),
     [certificateForm.template_id, templates],
   );
   const certificateCustomFields = useMemo(
-    () => (selectedTemplate?.fields || []).filter((field) => !CORE_FIELD_KEYS.includes(field.key)),
+    () =>
+      (selectedTemplate?.fields || []).filter(
+        (field) => !CORE_FIELD_KEYS.includes(field.key),
+      ),
     [selectedTemplate],
   );
   const totalDeduction = useMemo(
-    () => exam.errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0),
+    () =>
+      exam.errors.reduce((sum, error) => sum + Number(error.deduction || 0), 0),
     [exam.errors],
   );
   const liveScore = Math.max(0, 100 - totalDeduction);
@@ -111,27 +136,37 @@ const EvaluationForm = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [errorRes, studentRes, teacherRes, templateRes] = await Promise.all([
-        errorTypesAPI.getAll(),
-        studentsAPI.getAll(),
-        teachersAPI.getAll(),
-        certificatesAPI.getTemplates(),
-      ]);
+      const [errorRes, studentRes, teacherRes, templateRes] = await Promise.all(
+        [
+          errorTypesAPI.getAll(),
+          studentsAPI.getAll(),
+          teachersAPI.getAll(),
+          certificatesAPI.getTemplates(),
+        ],
+      );
       setErrorTypes(errorRes.data);
       setStudents(studentRes.data);
       setTeachers(teacherRes.data);
       setTemplates(templateRes.data || []);
       if (templateRes.data?.[0]) {
-        setCertificateForm((current) => ({ ...current, template_id: current.template_id || templateRes.data[0].id }));
+        setCertificateForm((current) => ({
+          ...current,
+          template_id: current.template_id || templateRes.data[0].id,
+        }));
       }
 
       const studentId = searchParams.get("student_id");
-      const selectedStudent = studentRes.data.find((student) => student.id === studentId);
+      const selectedStudent = studentRes.data.find(
+        (student) => student.id === studentId,
+      );
       setExam((current) => ({
         ...current,
         student_id: selectedStudent?.id || current.student_id,
-        from_juz: selectedStudent?.exam_request?.from_juz?.toString() || current.from_juz,
-        to_juz: selectedStudent?.exam_request?.to_juz?.toString() || current.to_juz,
+        from_juz:
+          selectedStudent?.exam_request?.from_juz?.toString() ||
+          current.from_juz,
+        to_juz:
+          selectedStudent?.exam_request?.to_juz?.toString() || current.to_juz,
       }));
     } catch (error) {
       toast.error(t("error"));
@@ -167,7 +202,8 @@ const EvaluationForm = () => {
         return {
           ...current,
           from_juz: value,
-          to_juz: Number(value) > Number(current.to_juz) ? value : current.to_juz,
+          to_juz:
+            Number(value) > Number(current.to_juz) ? value : current.to_juz,
         };
       }
       if (field === "to_juz" && Number(value) < Number(current.from_juz)) {
@@ -192,7 +228,10 @@ const EvaluationForm = () => {
     const customFields = Object.fromEntries(
       (template?.fields || [])
         .filter((field) => !CORE_FIELD_KEYS.includes(field.key))
-        .map((field) => [field.key, certificateForm.custom_fields?.[field.key] || ""]),
+        .map((field) => [
+          field.key,
+          certificateForm.custom_fields?.[field.key] || "",
+        ]),
     );
     setCertificateForm((current) => ({
       ...current,
@@ -210,7 +249,8 @@ const EvaluationForm = () => {
           error_type_id: errorType.id,
           name: errorType.name,
           deduction: Number(errorType.deduction),
-          page_number: getJuzPagesRange(current.from_juz, current.to_juz)[0] || "",
+          page_number:
+            getJuzPagesRange(current.from_juz, current.to_juz)[0] || "",
           word: "",
           note: "",
         },
@@ -244,7 +284,10 @@ const EvaluationForm = () => {
       toast.error(t("invalidJuzRange"));
       return;
     }
-    if (savingMode === "certificate" && (!certificateForm.template_id || !certificateForm.degree)) {
+    if (
+      savingMode === "certificate" &&
+      (!certificateForm.template_id || !certificateForm.degree)
+    ) {
       toast.error(t("certificateFieldsRequired"));
       return;
     }
@@ -271,7 +314,9 @@ const EvaluationForm = () => {
           custom_fields: certificateForm.custom_fields || {},
           evaluation_id: evaluationResponse.data.id,
         });
-        const pdf = await certificatesAPI.downloadPdf(certificateResponse.data.id);
+        const pdf = await certificatesAPI.downloadPdf(
+          certificateResponse.data.id,
+        );
         downloadBlob(pdf, `${certificateResponse.data.certificate_number}.pdf`);
         toast.success(t("certificateIssued"));
       }
@@ -291,9 +336,15 @@ const EvaluationForm = () => {
   }
 
   return (
-    <form onSubmit={handleSaveExam} className="space-y-6" data-testid="evaluation-form-page">
+    <form
+      onSubmit={handleSaveExam}
+      className="space-y-6"
+      data-testid="evaluation-form-page">
       <div>
-        <Button variant="ghost" className="mb-2 gap-2 px-0" onClick={() => navigate("/evaluations")}>
+        <Button
+          variant="ghost"
+          className="mb-2 gap-2 px-0"
+          onClick={() => navigate("/evaluations")}>
           <ArrowLeft className="h-4 w-4" />
           {t("backToEvaluations")}
         </Button>
@@ -337,22 +388,30 @@ const EvaluationForm = () => {
           </div>
           <div className="space-y-2">
             <Label>{t("fromJuz")}</Label>
-            <Select value={exam.from_juz} disabled={examTeacherLocked} onValueChange={(value) => updateExam("from_juz", value)}>
+            <Select
+              value={exam.from_juz}
+              disabled={examTeacherLocked}
+              onValueChange={(value) => updateExam("from_juz", value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {JUZ_OPTIONS.filter((juz) => juz >= Number(exam.from_juz)).map((juz) => (
-                  <SelectItem key={juz} value={juz.toString()}>
-                    {t("juz")} {juz}
-                  </SelectItem>
-                ))}
+                {JUZ_OPTIONS.filter((juz) => juz >= Number(exam.from_juz)).map(
+                  (juz) => (
+                    <SelectItem key={juz} value={juz.toString()}>
+                      {t("juz")} {juz}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
             <Label>{t("toJuz")}</Label>
-            <Select value={exam.to_juz} disabled={examTeacherLocked} onValueChange={(value) => updateExam("to_juz", value)}>
+            <Select
+              value={exam.to_juz}
+              disabled={examTeacherLocked}
+              onValueChange={(value) => updateExam("to_juz", value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -380,8 +439,7 @@ const EvaluationForm = () => {
                 type="button"
                 variant="outline"
                 className="h-auto min-h-20 justify-between gap-3 whitespace-normal p-4 text-left"
-                onClick={() => addError(errorType)}
-              >
+                onClick={() => addError(errorType)}>
                 <span>
                   <span className="block font-semibold">{errorType.name}</span>
                   <span className="block text-sm text-muted-foreground">
@@ -398,7 +456,9 @@ const EvaluationForm = () => {
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">{t("finalScore")}</p>
             <p className="mt-1 text-5xl font-bold text-primary">{liveScore}%</p>
-            <Badge className={`${getScoreColor(liveScore)} mt-3`}>{t(liveResult)}</Badge>
+            <Badge className={`${getScoreColor(liveScore)} mt-3`}>
+              {t(liveResult)}
+            </Badge>
             <div className="mt-5 space-y-2">
               <div className="flex justify-between text-sm">
                 <span>{t("totalErrors")}</span>
@@ -425,20 +485,33 @@ const EvaluationForm = () => {
           ) : (
             <div className="grid gap-3">
               {exam.errors.map((error, index) => (
-                <div key={`${error.error_type_id || error.name}-${index}`} className="rounded-md border p-3">
+                <div
+                  key={`${error.error_type_id || error.name}-${index}`}
+                  className="rounded-md border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">{error.name}</p>
-                      <p className="text-sm text-muted-foreground">-{error.deduction} {t("marks")}</p>
+                      <p className="text-sm text-muted-foreground">
+                        -{error.deduction} {t("marks")}
+                      </p>
                     </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeError(index)} aria-label={`${t("remove")} ${error.name}`}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeError(index)}
+                      aria-label={`${t("remove")} ${error.name}`}>
                       <MinusCircle className="h-5 w-5" />
                     </Button>
                   </div>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <div className="space-y-1">
                       <Label>{t("page")}</Label>
-                      <Select value={error.page_number?.toString()} onValueChange={(value) => updateError(index, "page_number", value)}>
+                      <Select
+                        value={error.page_number?.toString()}
+                        onValueChange={(value) =>
+                          updateError(index, "page_number", value)
+                        }>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -453,7 +526,12 @@ const EvaluationForm = () => {
                     </div>
                     <div className="space-y-1">
                       <Label>{t("word")}</Label>
-                      <Input value={error.word} onChange={(event) => updateError(index, "word", event.target.value)} />
+                      <Input
+                        value={error.word}
+                        onChange={(event) =>
+                          updateError(index, "word", event.target.value)
+                        }
+                      />
                     </div>
                   </div>
                 </div>
@@ -486,7 +564,9 @@ const EvaluationForm = () => {
         <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label>{t("template")}</Label>
-            <Select value={certificateForm.template_id} onValueChange={selectCertificateTemplate}>
+            <Select
+              value={certificateForm.template_id}
+              onValueChange={selectCertificateTemplate}>
               <SelectTrigger>
                 <SelectValue placeholder={t("selectTemplate")} />
               </SelectTrigger>
@@ -504,7 +584,10 @@ const EvaluationForm = () => {
             <Input
               value={certificateForm.degree}
               onChange={(event) =>
-                setCertificateForm((current) => ({ ...current, degree: event.target.value }))
+                setCertificateForm((current) => ({
+                  ...current,
+                  degree: event.target.value,
+                }))
               }
               placeholder={t("degree")}
             />
@@ -515,7 +598,10 @@ const EvaluationForm = () => {
               type="date"
               value={certificateForm.issue_date}
               onChange={(event) =>
-                setCertificateForm((current) => ({ ...current, issue_date: event.target.value }))
+                setCertificateForm((current) => ({
+                  ...current,
+                  issue_date: event.target.value,
+                }))
               }
             />
           </div>
@@ -524,7 +610,9 @@ const EvaluationForm = () => {
               <Label>{field.label}</Label>
               <Input
                 value={certificateForm.custom_fields?.[field.key] || ""}
-                onChange={(event) => updateCertificateCustomField(field.key, event.target.value)}
+                onChange={(event) =>
+                  updateCertificateCustomField(field.key, event.target.value)
+                }
                 dir="auto"
               />
             </div>
@@ -533,14 +621,16 @@ const EvaluationForm = () => {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => navigate("/evaluations")}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate("/evaluations")}>
           {t("cancel")}
         </Button>
         <Button
           type="submit"
           className="gap-2 bg-primary hover:bg-primary/90"
-          onClick={() => setSavingMode("exam")}
-        >
+          onClick={() => setSavingMode("exam")}>
           <Save className="h-4 w-4" />
           {t("save")}
         </Button>
@@ -548,8 +638,7 @@ const EvaluationForm = () => {
           type="submit"
           className="gap-2"
           disabled={!templates.length}
-          onClick={() => setSavingMode("certificate")}
-        >
+          onClick={() => setSavingMode("certificate")}>
           <Award className="h-4 w-4" />
           {t("saveAndGenerateCertificate")}
         </Button>

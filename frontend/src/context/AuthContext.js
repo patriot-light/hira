@@ -1,4 +1,10 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import axios from "axios";
 import { REACT_APP_BACKEND_URL } from "@/constants/constants";
 
@@ -82,7 +88,8 @@ export const AuthProvider = ({ children }) => {
   const isExamTeacher = () => user?.role === "exam_teacher";
   const isStudent = () => user?.role === "student";
   const canManage = () => isAdmin() || isStaff();
-  const canEvaluate = () => isAdmin() || isStaff() || isTeacher() || isExamTeacher();
+  const canEvaluate = () =>
+    isAdmin() || isStaff() || isTeacher() || isExamTeacher();
 
   return (
     <AuthContext.Provider
@@ -100,8 +107,7 @@ export const AuthProvider = ({ children }) => {
         isStudent,
         canManage,
         canEvaluate,
-      }}
-    >
+      }}>
       {children}
     </AuthContext.Provider>
   );

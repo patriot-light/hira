@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 import { errorTypesAPI } from "../services/api";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +78,12 @@ const ErrorTypes = () => {
   };
 
   const handleDelete = async (id) => {
+    if (
+      !window.confirm(
+        t("deleteErrorTypeConfirmation", { name: t("errorType") }),
+      )
+    )
+      return;
     try {
       await errorTypesAPI.delete(id);
       toast.success(t("errorTypeDeleted"));
@@ -108,8 +119,7 @@ const ErrorTypes = () => {
             setDialogOpen(true);
           }}
           className="gap-2 bg-primary hover:bg-primary/90"
-          data-testid="add-error-type-btn"
-        >
+          data-testid="add-error-type-btn">
           <Plus className="h-4 w-4" />
           {t("addError")}
         </Button>
@@ -126,21 +136,27 @@ const ErrorTypes = () => {
                 <TableRow>
                   <TableHead>{t("name")}</TableHead>
                   <TableHead>{t("deduction")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("description")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("description")}
+                  </TableHead>
                   <TableHead className="w-12">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {errorTypes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={4}
+                      className="py-8 text-center text-muted-foreground">
                       {t("noData")}
                     </TableCell>
                   </TableRow>
                 ) : (
                   errorTypes.map((errorType) => (
                     <TableRow key={errorType.id}>
-                      <TableCell className="font-medium">{errorType.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {errorType.name}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">
                           -{errorType.deduction} {t("marks")}
@@ -155,8 +171,7 @@ const ErrorTypes = () => {
                           size="icon"
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleDelete(errorType.id)}
-                          aria-label={`${t("delete")} ${errorType.name}`}
-                        >
+                          aria-label={`${t("delete")} ${errorType.name}`}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -173,9 +188,7 @@ const ErrorTypes = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("addError")}</DialogTitle>
-            <DialogDescription>
-              {t("addErrorDescription")}
-            </DialogDescription>
+            <DialogDescription>{t("addErrorDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -183,7 +196,10 @@ const ErrorTypes = () => {
               <Input
                 value={formData.name}
                 onChange={(event) =>
-                  setFormData((current) => ({ ...current, name: event.target.value }))
+                  setFormData((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
                 }
                 required
                 data-testid="error-type-name-input"
@@ -198,7 +214,10 @@ const ErrorTypes = () => {
                 step="0.5"
                 value={formData.deduction}
                 onChange={(event) =>
-                  setFormData((current) => ({ ...current, deduction: event.target.value }))
+                  setFormData((current) => ({
+                    ...current,
+                    deduction: event.target.value,
+                  }))
                 }
                 required
                 data-testid="error-type-deduction-input"
@@ -209,12 +228,18 @@ const ErrorTypes = () => {
               <Textarea
                 value={formData.description}
                 onChange={(event) =>
-                  setFormData((current) => ({ ...current, description: event.target.value }))
+                  setFormData((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
                 }
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">

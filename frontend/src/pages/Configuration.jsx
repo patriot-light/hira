@@ -1,9 +1,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "../context/LanguageContext";
 import { errorTypesAPI, halaqaTypesAPI } from "../services/api";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { TypedDeleteDialog } from "../components/ui/typed-delete-dialog";
 import {
   Dialog,
   DialogContent,
@@ -22,18 +29,32 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
-import { AlertCircle, BookOpen, Loader2, Plus, Settings, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  BookOpen,
+  Loader2,
+  Plus,
+  Settings,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const Configuration = () => {
   const { t } = useTranslation();
+  const { isRTL } = useLanguage();
   const [errorTypes, setErrorTypes] = useState([]);
   const [halaqaTypes, setHalaqaTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [halaqaTypeDialogOpen, setHalaqaTypeDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [errorForm, setErrorForm] = useState({
     name: "",
     deduction: "1",
@@ -147,12 +168,17 @@ const Configuration = () => {
       </div>
 
       <Tabs defaultValue="errors" className="space-y-4">
-        <TabsList className="grid h-auto w-full max-w-xl grid-cols-2 gap-2 bg-transparent p-0">
-          <TabsTrigger value="errors" className="min-h-11 rounded-lg border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <TabsList
+          className={`grid h-auto w-full max-w-xl grid-cols-2 gap-2 bg-transparent p-0 ${isRTL() ? "ms-auto" : "me-auto"}`}>
+          <TabsTrigger
+            value="errors"
+            className="min-h-11 rounded-lg border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <AlertCircle className="me-2 h-4 w-4" />
             {t("errorTypes")}
           </TabsTrigger>
-          <TabsTrigger value="halaqa-types" className="min-h-11 rounded-lg border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="halaqa-types"
+            className="min-h-11 rounded-lg border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <BookOpen className="me-2 h-4 w-4" />
             {t("halaqaTypes")}
           </TabsTrigger>
@@ -168,8 +194,7 @@ const Configuration = () => {
                   setErrorDialogOpen(true);
                 }}
                 className="gap-2 bg-primary hover:bg-primary/90"
-                data-testid="add-error-type-btn"
-              >
+                data-testid="add-error-type-btn">
                 <Plus className="h-4 w-4" />
                 {t("addError")}
               </Button>
@@ -181,21 +206,27 @@ const Configuration = () => {
                     <TableRow>
                       <TableHead>{t("name")}</TableHead>
                       <TableHead>{t("deduction")}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t("description")}</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        {t("description")}
+                      </TableHead>
                       <TableHead className="w-12">{t("actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {errorTypes.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={4}
+                          className="py-8 text-center text-muted-foreground">
                           {t("noData")}
                         </TableCell>
                       </TableRow>
                     ) : (
                       errorTypes.map((errorType) => (
                         <TableRow key={errorType.id}>
-                          <TableCell className="font-medium">{errorType.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {errorType.name}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               -{errorType.deduction} {t("marks")}
@@ -209,9 +240,13 @@ const Configuration = () => {
                               variant="ghost"
                               size="icon"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteError(errorType.id)}
-                              aria-label={`${t("delete")} ${errorType.name}`}
-                            >
+                              onClick={() =>
+                                setDeleteTarget({
+                                  kind: "error",
+                                  item: errorType,
+                                })
+                              }
+                              aria-label={`${t("delete")} ${errorType.name}`}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -235,8 +270,7 @@ const Configuration = () => {
                   setHalaqaTypeDialogOpen(true);
                 }}
                 className="gap-2 bg-primary hover:bg-primary/90"
-                data-testid="add-halaqa-type-btn"
-              >
+                data-testid="add-halaqa-type-btn">
                 <Plus className="h-4 w-4" />
                 {t("addHalaqaType")}
               </Button>
@@ -247,21 +281,27 @@ const Configuration = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("name")}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t("description")}</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        {t("description")}
+                      </TableHead>
                       <TableHead className="w-12">{t("actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {halaqaTypes.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={3}
+                          className="py-8 text-center text-muted-foreground">
                           {t("noData")}
                         </TableCell>
                       </TableRow>
                     ) : (
                       halaqaTypes.map((type) => (
                         <TableRow key={type.id}>
-                          <TableCell className="font-medium">{type.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {type.name}
+                          </TableCell>
                           <TableCell className="hidden max-w-md truncate md:table-cell">
                             {type.description || "-"}
                           </TableCell>
@@ -270,9 +310,13 @@ const Configuration = () => {
                               variant="ghost"
                               size="icon"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteHalaqaType(type.id)}
-                              aria-label={`${t("delete")} ${type.name}`}
-                            >
+                              onClick={() =>
+                                setDeleteTarget({
+                                  kind: "halaqaType",
+                                  item: type,
+                                })
+                              }
+                              aria-label={`${t("delete")} ${type.name}`}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -299,7 +343,10 @@ const Configuration = () => {
               <Input
                 value={errorForm.name}
                 onChange={(event) =>
-                  setErrorForm((current) => ({ ...current, name: event.target.value }))
+                  setErrorForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
                 }
                 required
               />
@@ -313,7 +360,10 @@ const Configuration = () => {
                 step="0.5"
                 value={errorForm.deduction}
                 onChange={(event) =>
-                  setErrorForm((current) => ({ ...current, deduction: event.target.value }))
+                  setErrorForm((current) => ({
+                    ...current,
+                    deduction: event.target.value,
+                  }))
                 }
                 required
               />
@@ -323,12 +373,18 @@ const Configuration = () => {
               <Textarea
                 value={errorForm.description}
                 onChange={(event) =>
-                  setErrorForm((current) => ({ ...current, description: event.target.value }))
+                  setErrorForm((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
                 }
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setErrorDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setErrorDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
@@ -339,11 +395,15 @@ const Configuration = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={halaqaTypeDialogOpen} onOpenChange={setHalaqaTypeDialogOpen}>
+      <Dialog
+        open={halaqaTypeDialogOpen}
+        onOpenChange={setHalaqaTypeDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("addHalaqaType")}</DialogTitle>
-            <DialogDescription>{t("addHalaqaTypeDescription")}</DialogDescription>
+            <DialogDescription>
+              {t("addHalaqaTypeDescription")}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleHalaqaTypeSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -351,7 +411,10 @@ const Configuration = () => {
               <Input
                 value={halaqaTypeForm.name}
                 onChange={(event) =>
-                  setHalaqaTypeForm((current) => ({ ...current, name: event.target.value }))
+                  setHalaqaTypeForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
                 }
                 required
                 data-testid="halaqa-type-name-input"
@@ -362,12 +425,18 @@ const Configuration = () => {
               <Textarea
                 value={halaqaTypeForm.description}
                 onChange={(event) =>
-                  setHalaqaTypeForm((current) => ({ ...current, description: event.target.value }))
+                  setHalaqaTypeForm((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
                 }
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setHalaqaTypeDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setHalaqaTypeDialogOpen(false)}>
                 {t("cancel")}
               </Button>
               <Button type="submit" className="bg-primary hover:bg-primary/90">
@@ -377,6 +446,30 @@ const Configuration = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <TypedDeleteDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={t("confirm")}
+        description={
+          deleteTarget?.kind === "error"
+            ? t("deleteErrorTypeConfirmation", {
+                name: deleteTarget?.item?.name,
+              })
+            : t("deleteHalaqaTypeConfirmation", {
+                name: deleteTarget?.item?.name,
+              })
+        }
+        cancelLabel={t("cancel")}
+        confirmLabel={t("delete")}
+        onConfirm={async () => {
+          if (deleteTarget?.kind === "error")
+            await handleDeleteError(deleteTarget.item.id);
+          if (deleteTarget?.kind === "halaqaType")
+            await handleDeleteHalaqaType(deleteTarget.item.id);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 };

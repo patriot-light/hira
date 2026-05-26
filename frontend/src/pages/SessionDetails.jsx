@@ -126,7 +126,10 @@ const SessionDetails = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        {renderDetailBox(t("duration"), `${session.duration_minutes} ${t("minutes")}`)}
+        {renderDetailBox(
+          t("duration"),
+          `${session.duration_minutes} ${t("minutes")}`,
+        )}
         {renderDetailBox(t("totalPages"), session.total_pages)}
         {renderDetailBox(t("pageRatings"), session.page_ratings?.length || 0)}
         {renderDetailBox(t("result"), session.result ? t(session.result) : "-")}
@@ -151,7 +154,9 @@ const SessionDetails = () => {
                   session.page_ratings.map((rating, index) => (
                     <TableRow key={`${rating.page_number}-${index}`}>
                       <TableCell>{rating.page_number || "-"}</TableCell>
-                      <TableCell className="font-medium">{rating.rating ? t(rating.rating) : "-"}</TableCell>
+                      <TableCell className="font-medium">
+                        {rating.rating ? t(rating.rating) : "-"}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{rating.score || "-"}%</Badge>
                       </TableCell>

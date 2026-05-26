@@ -2,10 +2,23 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, BriefcaseBusiness, GraduationCap, KeyRound, Loader2, Phone, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  BriefcaseBusiness,
+  GraduationCap,
+  KeyRound,
+  Loader2,
+  Phone,
+  Save,
+} from "lucide-react";
 import { teachersAPI } from "../services/api";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 
@@ -80,9 +93,15 @@ const TeacherForm = () => {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-6" data-testid="teacher-form-page">
+    <form
+      onSubmit={submit}
+      className="space-y-6"
+      data-testid="teacher-form-page">
       <div className="page-hero rounded-lg p-5 md:p-7">
-        <Button variant="ghost" className="mb-4 gap-2 bg-white/60 px-3" onClick={() => navigate("/teachers")}>
+        <Button
+          variant="ghost"
+          className="mb-4 gap-2 bg-white/60 px-3"
+          onClick={() => navigate("/teachers")}>
           <ArrowLeft className="h-4 w-4" />
           {t("teachers")}
         </Button>
@@ -101,10 +120,16 @@ const TeacherForm = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="bg-white/85" onClick={() => navigate("/teachers")}>
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-white/85"
+              onClick={() => navigate("/teachers")}>
               {t("cancel")}
             </Button>
-            <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90">
+            <Button
+              type="submit"
+              className="gap-2 bg-primary hover:bg-primary/90">
               <Save className="h-4 w-4" />
               {t("save")}
             </Button>
@@ -124,15 +149,44 @@ const TeacherForm = () => {
             <CardContent className="grid gap-4 p-5 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label>{t("fullName")} *</Label>
-                <Input value={formData.full_name} onChange={(event) => setFormData((current) => ({ ...current, full_name: event.target.value }))} required />
+                <Input
+                  value={formData.full_name}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      full_name: event.target.value,
+                    }))
+                  }
+                  required
+                />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label>{t("qualification")} *</Label>
-                <Input value={formData.qualification} onChange={(event) => setFormData((current) => ({ ...current, qualification: event.target.value }))} required placeholder={t("teacherQualificationPlaceholder")} />
+                <Input
+                  value={formData.qualification}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      qualification: event.target.value,
+                    }))
+                  }
+                  required
+                  placeholder={t("teacherQualificationPlaceholder")}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("experienceYears")}</Label>
-                <Input type="number" min="0" value={formData.experience_years} onChange={(event) => setFormData((current) => ({ ...current, experience_years: event.target.value }))} />
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.experience_years}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      experience_years: event.target.value,
+                    }))
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -147,11 +201,28 @@ const TeacherForm = () => {
             <CardContent className="grid gap-4 p-5 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>{t("phone")}</Label>
-                <Input value={formData.phone} onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))} />
+                <Input
+                  value={formData.phone}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      phone: event.target.value,
+                    }))
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t("email")}</Label>
-                <Input type="email" value={formData.email} onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))} />
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
+                />
               </div>
             </CardContent>
           </Card>
@@ -167,8 +238,20 @@ const TeacherForm = () => {
               <CardContent className="grid gap-4 p-5">
                 <div className="space-y-2">
                   <Label>{t("password")}</Label>
-                  <Input type="password" value={formData.password} onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))} placeholder={t("teacherPasswordPlaceholder")} />
-                  <p className="text-xs text-muted-foreground">{t("loginAccountHint")}</p>
+                  <Input
+                    type="password"
+                    value={formData.password}
+                    onChange={(event) =>
+                      setFormData((current) => ({
+                        ...current,
+                        password: event.target.value,
+                      }))
+                    }
+                    placeholder={t("teacherPasswordPlaceholder")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("loginAccountHint")}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -188,18 +271,30 @@ const TeacherForm = () => {
               <p className="mt-1 font-bold">{formData.full_name || "-"}</p>
             </div>
             <div className="rounded-lg border bg-white/70 p-4">
-              <p className="text-sm text-muted-foreground">{t("qualification")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("qualification")}
+              </p>
               <p className="mt-1 font-bold">{formData.qualification || "-"}</p>
             </div>
             <div className="rounded-lg border bg-white/70 p-4">
-              <p className="text-sm text-muted-foreground">{t("experienceYears")}</p>
-              <p className="mt-1 font-bold">{formData.experience_years || 0} {t("years")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("experienceYears")}
+              </p>
+              <p className="mt-1 font-bold">
+                {formData.experience_years || 0} {t("years")}
+              </p>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => navigate("/teachers")}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => navigate("/teachers")}>
                 {t("cancel")}
               </Button>
-              <Button type="submit" className="flex-1 gap-2 bg-primary hover:bg-primary/90">
+              <Button
+                type="submit"
+                className="flex-1 gap-2 bg-primary hover:bg-primary/90">
                 <Save className="h-4 w-4" />
                 {t("save")}
               </Button>
