@@ -9,27 +9,27 @@ import "./i18n";
 import MainLayout from "./components/layout/MainLayout";
 
 // Pages
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Students from "./pages/Students";
-import StudentForm from "./pages/StudentForm";
-import StudentDetails from "./pages/StudentDetails";
-import Teachers from "./pages/Teachers";
-import TeacherForm from "./pages/TeacherForm";
-import TeacherDetails from "./pages/TeacherDetails";
-import Halaqas from "./pages/Halaqas";
-import HalaqaForm from "./pages/HalaqaForm";
-import HalaqaDetails from "./pages/HalaqaDetails";
-import Evaluations from "./pages/Evaluations";
-import Sessions from "./pages/Sessions";
-import SessionDetails from "./pages/SessionDetails";
-import SessionForm from "./pages/SessionForm";
-import Reports from "./pages/Reports";
-import Users from "./pages/Users";
-import EvaluationDetails from "./pages/EvaluationDetails";
-import EvaluationForm from "./pages/EvaluationForm";
-import Certificates from "./pages/Certificates";
-import Configuration from "./pages/Configuration";
+import Login from "@/features/auth/pages/Login";
+import Dashboard from "@/features/dashboard/pages/Dashboard";
+import Students from "@/features/students/pages/Students";
+import StudentForm from "@/features/students/pages/StudentForm";
+import StudentDetails from "@/features/students/pages/StudentDetails";
+import Teachers from "@/features/teachers/pages/Teachers";
+import TeacherForm from "@/features/teachers/pages/TeacherForm";
+import TeacherDetails from "@/features/teachers/pages/TeacherDetails";
+import Halaqas from "@/features/halaqas/pages/Halaqas";
+import HalaqaForm from "@/features/halaqas/pages/HalaqaForm";
+import HalaqaDetails from "@/features/halaqas/pages/HalaqaDetails";
+import Evaluations from "@/features/evaluations/pages/Evaluations";
+import Sessions from "@/features/sessions/pages/Sessions";
+import SessionDetails from "@/features/sessions/pages/SessionDetails";
+import SessionForm from "@/features/sessions/pages/SessionForm";
+import Reports from "@/features/reports/pages/Reports";
+import Users from "@/features/users/pages/Users";
+import EvaluationDetails from "@/features/evaluations/pages/EvaluationDetails";
+import EvaluationForm from "@/features/evaluations/pages/EvaluationForm";
+import Certificates from "@/features/certificates/pages/Certificates";
+import Configuration from "@/features/configuration/pages/Configuration";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
