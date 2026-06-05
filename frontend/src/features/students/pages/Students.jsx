@@ -102,7 +102,7 @@ const Students = () => {
                 {t("students")}
               </h1>
               <p className="mt-1 text-base font-medium text-slate-600">
-                {students.length} {t("students")}
+                {filteredStudents?.length} {t("students")}
               </p>
             </div>
           </div>
@@ -181,7 +181,7 @@ const Students = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.length === 0 ? (
+                {filteredStudents?.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
@@ -190,7 +190,7 @@ const Students = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredStudents.map((student) => (
+                  filteredStudents?.map((student) => (
                     <TableRow
                       key={student.id}
                       data-testid={`student-row-${student.id}`}>
@@ -215,7 +215,9 @@ const Students = () => {
                         <StudentHalaqaLinks
                           halaqas={getHalaqaNames(student)}
                           t={t}
-                          onNavigate={(halaqaId) => navigate(`/halaqas/${halaqaId}`)}
+                          onNavigate={(halaqaId) =>
+                            navigate(`/halaqas/${halaqaId}`)
+                          }
                         />
                       </TableCell>
                       <TableCell>

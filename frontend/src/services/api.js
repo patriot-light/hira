@@ -38,6 +38,11 @@ export const authAPI = {
   getMe: () => api.get("/auth/me"),
 };
 
+// Admin API
+export const adminAPI = {
+  clearAllData: () => api.delete("/admin/data"),
+};
+
 // Users API
 export const usersAPI = {
   getAll: () => api.get("/users"),

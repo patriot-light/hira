@@ -77,6 +77,12 @@ class MemoryCollection {
     return { deletedCount: before === this.items.length ? 0 : 1 };
   }
 
+  async deleteMany(query = {}) {
+    const before = this.items.length;
+    this.items = this.items.filter((entry) => !this.matches(entry, query));
+    return { deletedCount: before - this.items.length };
+  }
+
   async countDocuments(query = {}) {
     return this.items.filter((entry) => this.matches(entry, query)).length;
   }

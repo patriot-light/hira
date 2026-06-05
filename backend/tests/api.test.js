@@ -445,3 +445,36 @@ test("admins can design and issue certificate PDFs", async () => {
     .set("Authorization", `Bearer ${studentUser.body.access_token}`);
   assert.equal(forbidden.status, 403);
 });
+
+test("admins can clear all application data and defaults are restored", async () => {
+  const student = await auth(api.post("/api/students")).send({
+    full_name: "Clear Data Student",
+    phone: "+966555000555",
+    status: "active",
+  });
+  assert.equal(student.status, 200);
+
+  const clear = await auth(api.delete("/api/admin/data"));
+  assert.equal(clear.status, 200);
+  assert.equal(clear.body.message, "All data cleared successfully");
+  assert.ok(clear.body.deleted.users >= 1);
+  assert.ok(clear.body.deleted.students >= 1);
+
+  const login = await api
+    .post("/api/auth/login")
+    .send({ email: "admin@hira.edu", password: "admin123" });
+  assert.equal(login.status, 200);
+
+  const restoredToken = login.body.access_token;
+  const dashboard = await api
+    .get("/api/reports/dashboard")
+    .set("Authorization", `Bearer ${restoredToken}`);
+  assert.equal(dashboard.status, 200);
+  assert.equal(dashboard.body.total_students, 0);
+
+  const errorTypes = await api
+    .get("/api/error-types")
+    .set("Authorization", `Bearer ${restoredToken}`);
+  assert.equal(errorTypes.status, 200);
+  assert.ok(errorTypes.body.length >= 1);
+});
