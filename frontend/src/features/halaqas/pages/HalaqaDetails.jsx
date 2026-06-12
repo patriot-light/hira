@@ -11,12 +11,7 @@ import {
 } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PhoneActions } from "@/components/ui/phone-actions";
 import {
   Table,
@@ -78,11 +73,12 @@ const HalaqaDetails = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+  console.log(halaqa);
 
   const teacherNames = useMemo(() => {
-    if (!halaqa?.teacher_ids?.length) return "-";
-    return halaqa.teacher_ids
-      .map((teacherId) => teachers.find((teacher) => teacher.id === teacherId))
+    if (halaqa?.teacher_ids == []) return "-";
+    return halaqa?.teacher_ids
+      .map((teacherId) => teachers?.find((teacher) => teacher.id === teacherId))
       .filter(Boolean);
   }, [halaqa, teachers]);
 
@@ -121,7 +117,8 @@ const HalaqaDetails = () => {
         <Button
           variant="ghost"
           className="mb-2 gap-2 px-0"
-          onClick={() => navigate("/halaqas")}>
+          onClick={() => navigate("/halaqas")}
+        >
           <ArrowLeft className="h-4 w-4" />
           {t("halaqas")}
         </Button>
@@ -162,13 +159,14 @@ const HalaqaDetails = () => {
               {t("assignedTeachers")}
             </p>
             <div className="flex flex-wrap gap-1 font-bold">
-              {teacherNames.length
-                ? teacherNames.map((teacher) => (
+              {teacherNames?.length > 0
+                ? teacherNames?.map((teacher) => (
                     <button
                       key={teacher.id}
                       type="button"
                       className="text-primary hover:underline"
-                      onClick={() => navigate(`/teachers/${teacher.id}`)}>
+                      onClick={() => navigate(`/teachers/${teacher.id}`)}
+                    >
                       {teacher.full_name}
                     </button>
                   ))
@@ -199,7 +197,8 @@ const HalaqaDetails = () => {
                       <button
                         type="button"
                         className="font-semibold text-primary hover:underline"
-                        onClick={() => navigate(`/students/${student.id}`)}>
+                        onClick={() => navigate(`/students/${student.id}`)}
+                      >
                         {student.full_name}
                       </button>
                     </TableCell>
@@ -218,7 +217,17 @@ const HalaqaDetails = () => {
                         variant="ghost"
                         size="sm"
                         className="gap-2 text-destructive hover:text-destructive"
-                        onClick={() => markAbsent(student)}>
+                        onClick={() => markAbsent(student)}
+                      >
+                        <UserX className="h-4 w-4" />
+                        {t("markAbsent")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-destructive hover:text-destructive"
+                        onClick={() => markAbsent(student)}
+                      >
                         <UserX className="h-4 w-4" />
                         {t("markAbsent")}
                       </Button>
@@ -229,7 +238,8 @@ const HalaqaDetails = () => {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="py-8 text-center text-muted-foreground">
+                    className="py-8 text-center text-muted-foreground"
+                  >
                     {t("noData")}
                   </TableCell>
                 </TableRow>
@@ -263,7 +273,8 @@ const HalaqaDetails = () => {
                         className="font-medium text-primary hover:underline"
                         onClick={() =>
                           navigate(`/students/${session.student_id}`)
-                        }>
+                        }
+                      >
                         {studentName(session.student_id)}
                       </button>
                     </TableCell>
@@ -288,7 +299,8 @@ const HalaqaDetails = () => {
                 <TableRow>
                   <TableCell
                     colSpan={4}
-                    className="py-8 text-center text-muted-foreground">
+                    className="py-8 text-center text-muted-foreground"
+                  >
                     {t("noData")}
                   </TableCell>
                 </TableRow>
@@ -321,7 +333,8 @@ const HalaqaDetails = () => {
                         className="font-medium text-primary hover:underline"
                         onClick={() =>
                           navigate(`/students/${record.student_id}`)
-                        }>
+                        }
+                      >
                         {studentName(record.student_id)}
                       </button>
                     </TableCell>
@@ -341,7 +354,8 @@ const HalaqaDetails = () => {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="py-8 text-center text-muted-foreground">
+                    className="py-8 text-center text-muted-foreground"
+                  >
                     {t("noData")}
                   </TableCell>
                 </TableRow>

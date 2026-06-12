@@ -399,6 +399,7 @@ const resources = {
       studentRaisedForExam: "Student raised for exam",
       loginSuccess: "Welcome to Hira Institute!",
       loginError: "Invalid email or password",
+      in_person:"In Person "
     },
   },
   ar: {
@@ -412,7 +413,7 @@ const resources = {
       students: "الطلاب",
       teachers: "المعلمون",
       halaqas: "الحلقات",
-      evaluations: "التقييمات",
+      evaluations: "الاختبارات",
       sessions: "الجلسات",
       reports: "التقارير",
       certificates: "الشهادات",
@@ -572,9 +573,9 @@ const resources = {
       notes: "ملاحظات",
       addEvaluation: "إضافة تقييم",
       addExamEvaluation: "إضافة تقييم اختبار",
-      evaluationHistory: "سجل التقييمات",
+      evaluationHistory: "سجل الاختبارات",
       evaluationDetails: "تفاصيل التقييم",
-      backToEvaluations: "العودة إلى التقييمات",
+      backToEvaluations: "العودة إلى الاختبارات",
       startExam: "بدء الاختبار",
       newExam: "اختبار جديد",
       newExamDescription:
@@ -619,7 +620,7 @@ const resources = {
       // Errors
       errorTracking: "تتبع الأخطاء",
       errorTypes: "أنواع الأخطاء",
-      errorTypesDescription: "خصومات مشتركة تستخدم في التقييمات والجلسات",
+      errorTypesDescription: "خصومات مشتركة تستخدم في الاختبارات والجلسات",
       errorCategory: "نوع الخطأ",
       errorName: "اسم الخطأ",
       errorTable: "جدول الأخطاء",
@@ -792,6 +793,7 @@ const resources = {
       studentRaisedForExam: "تم رفع اسم الطالب للاختبار",
       loginSuccess: "مرحباً بك في معهد حراء!",
       loginError: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      in_person: "حضورياً"
     },
   },
 };
