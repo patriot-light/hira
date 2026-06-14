@@ -150,7 +150,7 @@ const Configuration = () => {
   }
 
   return (
-    <div className="space-y-6" data-testid="configuration-page">
+    <div className="space-y-6" data-testid="configuration-page" >
       <div className="page-hero rounded-lg p-5 md:p-7">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-white/85 text-primary ring-1 ring-primary/15">
@@ -167,7 +167,7 @@ const Configuration = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="errors" className="space-y-4">
+      <Tabs defaultValue="errors" className="space-y-4 ">
         <TabsList
           className={`grid h-auto w-full max-w-xl grid-cols-2 gap-2 bg-transparent p-0 ${isRTL() ? "ms-auto" : "me-auto"}`}>
           <TabsTrigger
@@ -185,7 +185,7 @@ const Configuration = () => {
         </TabsList>
 
         <TabsContent value="errors">
-          <Card className="soft-panel overflow-hidden rounded-lg">
+          <Card className="soft-panel overflow-hidden rounded-lg  ">
             <CardHeader className="flex flex-col gap-3 border-b border-border/70 sm:flex-row sm:items-center sm:justify-between">
               <CardTitle>{t("errorTable")}</CardTitle>
               <Button
@@ -200,7 +200,7 @@ const Configuration = () => {
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto"style={{direction:"rtl"}}>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -276,7 +276,7 @@ const Configuration = () => {
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" style={{direction:"rtl"}}>
                 <Table>
                   <TableHeader>
                     <TableRow>
